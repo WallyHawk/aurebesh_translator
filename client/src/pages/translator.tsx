@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAurebesh } from '@/hooks/use-aurebesh';
-import { useAddHistoryEntry } from '@/hooks/use-storage';
+import { useAddHistoryEntry, useAddSavedPhrase } from '@/hooks/use-storage';
 import { useTheme } from '@/components/theme-provider';
 import { AurebeshKeyboard } from '@/components/aurebesh-keyboard';
 import { SettingsModal } from '@/components/modals/settings';
@@ -23,6 +23,7 @@ export default function TranslatorPage() {
   const { fontSize } = useTheme();
   const { toast } = useToast();
   const addHistoryEntry = useAddHistoryEntry();
+  const addSavedPhrase = useAddSavedPhrase();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -72,10 +73,19 @@ export default function TranslatorPage() {
     audioManager.play('success');
   };
 
-  const handleSave = () => {
-    if (englishText.trim()) {
-      // This will be handled by the SavedModal component
-      setSavedOpen(true);
+  const handleSave = async () => {
+    if (englishText.trim() && aurebeshText.trim()) {
+      try {
+        await addSavedPhrase.mutateAsync({
+          phrase: `${englishText.trim()} = ${aurebeshText.trim()}`,
+          timestamp: new Date().toISOString()
+        });
+        audioManager.play('success');
+        toast({ title: "Phrase saved successfully!" });
+      } catch (error) {
+        audioManager.play('error');
+        toast({ title: "Failed to save phrase", variant: "destructive" });
+      }
     }
   };
 
@@ -84,7 +94,6 @@ export default function TranslatorPage() {
       {/* Header */}
       <header className="flex justify-between items-center p-4 bg-card border-b border-border">
         <div className="flex items-center space-x-2">
-          <Dices className="text-primary text-2xl w-6 h-6" />
           <h1 className="text-xl font-bold text-card-foreground">Aurebesh Translator</h1>
         </div>
         <div className="flex space-x-2">
@@ -119,10 +128,10 @@ export default function TranslatorPage() {
           <Textarea
             value={englishText}
             onChange={(e) => updateEnglish(e.target.value)}
-            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 p-0"
+            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0"
             placeholder="Type your English text here..."
             rows={3}
-            style={{ fontSize: `${fontSize}px` }}
+            style={{ fontSize: `${fontSize}px`, padding: '10px' }}
             data-testid="input-english"
           />
         </div>
@@ -135,10 +144,10 @@ export default function TranslatorPage() {
           <Textarea
             value={aurebeshText}
             onChange={(e) => updateAurebesh(e.target.value)}
-            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 p-0 font-aurebesh"
+            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 font-aurebesh"
             placeholder="Aurebesh translation appears here..."
             rows={3}
-            style={{ fontSize: `${fontSize * 1.2}px` }}
+            style={{ fontSize: `${fontSize * 1.2}px`, padding: '10px' }}
             data-testid="input-aurebesh"
           />
         </div>

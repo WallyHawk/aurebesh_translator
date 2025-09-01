@@ -22,6 +22,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
   const [showAnswer, setShowAnswer] = useState(false);
   const [gameCards, setGameCards] = useState<string[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [currentOptions, setCurrentOptions] = useState<string[]>([]);
 
   useEffect(() => {
     if (open && gameProgress) {
@@ -40,6 +41,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
     setScore(0);
     setShowAnswer(false);
     setSelectedAnswer(null);
+    setCurrentOptions([]);
   };
 
   const generateAnswerOptions = (correctAnswer: string) => {
@@ -49,6 +51,13 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
     const allOptions = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5);
     return allOptions;
   };
+
+  // Generate options when card changes
+  useEffect(() => {
+    if (gameCards[currentCard]) {
+      setCurrentOptions(generateAnswerOptions(gameCards[currentCard]));
+    }
+  }, [currentCard, gameCards]);
 
   const handleAnswer = (answer: string) => {
     setSelectedAnswer(answer);
@@ -99,7 +108,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
   }
 
   const currentPrompt = gameCards[currentCard];
-  const answerOptions = generateAnswerOptions(currentPrompt);
   const progress = ((currentCard + (showAnswer ? 1 : 0)) / gameCards.length) * 100;
   const isGameComplete = currentCard >= gameCards.length - 1 && showAnswer;
 
@@ -180,7 +188,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
             /* Answer Options */
             <>
               <div className="grid grid-cols-2 gap-3 mb-4">
-                {answerOptions.map((option, index) => (
+                {currentOptions.map((option, index) => (
                   <Button
                     key={option}
                     variant="ghost"
