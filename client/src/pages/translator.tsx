@@ -33,20 +33,25 @@ export default function TranslatorPage() {
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [wordSearchOpen, setWordSearchOpen] = useState(false);
 
-  // Auto-save to history when translation changes
+  // Auto-save to history when translation changes (prevent duplicates)
+  const [lastSavedText, setLastSavedText] = useState('');
   useEffect(() => {
     if (englishText.trim() && aurebeshText.trim()) {
-      const timeoutId = setTimeout(() => {
-        addHistoryEntry.mutate({
-          english: englishText,
-          aurebesh: aurebeshText,
-          timestamp: new Date().toISOString(),
-        });
-      }, 1000);
+      const currentText = `${englishText.trim()}|${aurebeshText.trim()}`;
+      if (currentText !== lastSavedText) {
+        const timeoutId = setTimeout(() => {
+          addHistoryEntry.mutate({
+            english: englishText,
+            aurebesh: aurebeshText,
+            timestamp: new Date().toISOString(),
+          });
+          setLastSavedText(currentText);
+        }, 2000);
 
-      return () => clearTimeout(timeoutId);
+        return () => clearTimeout(timeoutId);
+      }
     }
-  }, [englishText, aurebeshText, addHistoryEntry]);
+  }, [englishText, aurebeshText, addHistoryEntry, lastSavedText]);
 
   const handleCopy = async () => {
     try {

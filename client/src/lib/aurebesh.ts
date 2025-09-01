@@ -30,7 +30,12 @@ export function englishToAurebesh(text: string): string {
       result += ligatures[text.substring(i, i + 2) as keyof typeof ligatures];
       i += 2;
     } else {
-      result += text[i].toUpperCase();
+      const upperChar = text[i].toUpperCase();
+      if (aurebeshCharacters[upperChar as keyof typeof aurebeshCharacters]) {
+        result += aurebeshCharacters[upperChar as keyof typeof aurebeshCharacters];
+      } else {
+        result += upperChar;
+      }
       i += 1;
     }
   }
@@ -55,7 +60,17 @@ export function aurebeshToEnglish(text: string): string {
     }
     
     if (!matched) {
-      result += normalizedChar.toLowerCase();
+      // Check if it's an Aurebesh character we need to convert back
+      for (const [letter, glyph] of Object.entries(aurebeshCharacters)) {
+        if (codePoint === glyph.codePointAt(0)) {
+          result += letter.toLowerCase();
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        result += normalizedChar.toLowerCase();
+      }
     }
   }
   

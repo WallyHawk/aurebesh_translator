@@ -24,8 +24,7 @@ export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
 
   return (
     <div className="bg-card rounded-lg p-4 border border-border">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-muted-foreground">Aurebesh Keyboard</h3>
+      <div className="flex items-center justify-end mb-3">
         <div className="flex items-center space-x-2">
           <Label htmlFor="aurebesh-toggle" className="text-xs text-muted-foreground">Latin</Label>
           <Switch 

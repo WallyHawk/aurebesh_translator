@@ -95,9 +95,17 @@ export function SavedModal({ open, onOpenChange, currentPhrase }: SavedModalProp
                 >
                   <div className="flex justify-between items-center">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-card-foreground">
-                        {phrase.phrase}
-                      </p>
+                      {phrase.phrase.includes(' = ') ? (
+                        <div className="text-sm text-card-foreground">
+                          <span>{phrase.phrase.split(' = ')[0]}</span>
+                          <span className="text-muted-foreground"> = </span>
+                          <span className="font-aurebesh">{phrase.phrase.split(' = ')[1]}</span>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-card-foreground">
+                          {phrase.phrase}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground mt-1">
                         {new Date(phrase.timestamp).toLocaleDateString()}
                       </p>

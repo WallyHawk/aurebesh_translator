@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useGameProgress, useUpdateGameProgress } from '@/hooks/use-storage';
-import { TIERS } from '@/lib/aurebesh';
+import { TIERS, englishToAurebesh } from '@/lib/aurebesh';
 import { audioManager } from '@/lib/audio';
 import { X, RotateCcw, ArrowRight } from 'lucide-react';
 
@@ -147,7 +147,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
           <div className="flashcard rounded-xl p-8 mb-6 flex-1 flex items-center justify-center">
             <div className="text-center">
               <div className="text-6xl font-aurebesh mb-4 text-card-foreground" data-testid="text-flashcard-prompt">
-                {currentPrompt?.toUpperCase()}
+                {currentPrompt ? englishToAurebesh(currentPrompt) : ''}
               </div>
               <div className="text-muted-foreground">What does this translate to?</div>
             </div>
