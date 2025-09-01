@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323:wght@400&display=swap');
+
+/* Custom Fonts */
+@font-face {
+  font-family: 'Aurebesh';
+  src: url('/fonts/aurebesh.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'VT323-Local';
+  src: url('/fonts/VT323-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IconFont';
+  src: url('/fonts/icon-font.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Rebel Theme - Default */
+  --background: hsl(45, 40%, 94%);
+  --foreground: hsl(210, 10%, 5%);
+  --card: hsl(200, 10%, 23%);
+  --card-foreground: hsl(45, 40%, 94%);
+  --popover: hsl(200, 10%, 23%);
+  --popover-foreground: hsl(45, 40%, 94%);
+  --primary: hsl(15, 75%, 58%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(200, 10%, 23%);
+  --secondary-foreground: hsl(45, 40%, 94%);
+  --muted: hsl(200, 10%, 23%);
+  --muted-foreground: hsl(45, 40%, 94%);
+  --accent: hsl(15, 85%, 50%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(200, 10%, 30%);
+  --input: hsl(200, 10%, 23%);
+  --ring: hsl(15, 75%, 58%);
+  --radius: 8px;
+  
+  /* Font families */
+  --font-sans: 'VT323-Local', 'VT323', monospace;
+  --font-serif: Georgia, serif;
+  --font-mono: 'VT323-Local', 'VT323', monospace;
+  --font-aurebesh: 'Aurebesh', 'Courier New', monospace;
+}
+
+/* Imperial Theme */
+.theme-imperial {
+  --background: hsl(200, 10%, 23%);
+  --foreground: hsl(0, 50%, 40%);
+  --card: hsl(210, 10%, 5%);
+  --card-foreground: hsl(45, 40%, 94%);
+  --popover: hsl(210, 10%, 5%);
+  --popover-foreground: hsl(45, 40%, 94%);
+  --primary: hsl(0, 50%, 40%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 10%, 5%);
+  --secondary-foreground: hsl(45, 40%, 94%);
+  --muted: hsl(210, 10%, 5%);
+  --muted-foreground: hsl(45, 40%, 94%);
+  --accent: hsl(0, 70%, 55%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(0, 50%, 30%);
+  --input: hsl(210, 10%, 5%);
+  --ring: hsl(0, 70%, 55%);
+}
+
+/* Light Side Theme */
+.theme-light {
+  --background: hsl(35, 20%, 65%);
+  --foreground: hsl(205, 100%, 75%);
+  --card: hsl(200, 10%, 23%);
+  --card-foreground: hsl(40, 30%, 75%);
+  --popover: hsl(200, 10%, 23%);
+  --popover-foreground: hsl(40, 30%, 75%);
+  --primary: hsl(205, 100%, 75%);
+  --primary-foreground: hsl(0, 0%, 0%);
+  --secondary: hsl(200, 10%, 23%);
+  --secondary-foreground: hsl(40, 30%, 75%);
+  --muted: hsl(200, 10%, 23%);
+  --muted-foreground: hsl(40, 30%, 75%);
+  --accent: hsl(140, 100%, 75%);
+  --accent-foreground: hsl(0, 0%, 0%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(200, 10%, 30%);
+  --input: hsl(200, 10%, 23%);
+  --ring: hsl(140, 100%, 75%);
+}
+
+/* Dark Side Theme */
+.theme-dark {
+  --background: hsl(0, 0%, 14%);
+  --foreground: hsl(0, 100%, 50%);
+  --card: hsl(0, 0%, 0%);
+  --card-foreground: hsl(45, 40%, 94%);
+  --popover: hsl(0, 0%, 0%);
+  --popover-foreground: hsl(45, 40%, 94%);
+  --primary: hsl(0, 100%, 50%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(0, 0%, 0%);
+  --secondary-foreground: hsl(45, 40%, 94%);
+  --muted: hsl(0, 0%, 0%);
+  --muted-foreground: hsl(45, 40%, 94%);
+  --accent: hsl(0, 0%, 87%);
+  --accent-foreground: hsl(0, 0%, 0%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(0, 0%, 20%);
+  --input: hsl(0, 0%, 0%);
+  --ring: hsl(0, 0%, 87%);
+}
+
+/* Bounty Hunter Theme */
+.theme-bounty {
+  --background: hsl(25, 15%, 60%);
+  --foreground: hsl(340, 75%, 97%);
+  --card: hsl(285, 60%, 5%);
+  --card-foreground: hsl(0, 0%, 67%);
+  --popover: hsl(285, 60%, 5%);
+  --popover-foreground: hsl(0, 0%, 67%);
+  --primary: hsl(80, 20%, 50%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(285, 60%, 5%);
+  --secondary-foreground: hsl(0, 0%, 67%);
+  --muted: hsl(285, 60%, 5%);
+  --muted-foreground: hsl(0, 0%, 67%);
+  --accent: hsl(80, 20%, 50%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(285, 60%, 15%);
+  --input: hsl(285, 60%, 5%);
+  --ring: hsl(80, 20%, 50%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'VT323', monospace;
+  }
+}
+
+@layer components {
+  .font-aurebesh {
+    font-family: var(--font-aurebesh);
+  }
+
+  .virtual-keyboard-key {
+    @apply bg-card text-card-foreground border border-border rounded-md h-12 flex items-center justify-center text-lg font-bold transition-all duration-150 active:scale-95 hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .translation-panel {
+    @apply bg-card text-card-foreground rounded-lg p-4 min-h-[120px] border border-border focus-within:ring-2 focus-within:ring-ring transition-all;
+  }
+
+  .game-overlay {
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(10px);
+  }
+
+  .flashcard {
+    background: linear-gradient(135deg, var(--card), var(--muted));
+    border: 2px solid var(--border);
+  }
+}
