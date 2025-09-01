@@ -1,0 +1,348 @@
+cell = self.children[0].children[2].children[self.grid_size*self.grid_size-1 - index]
+                        cell.background_color = (0.7,1,0.7,1)
+                    break
+            self.selected = []
+
+class TierSelectPopup(ModalView):
+    def __init__(self, translator_widget, tiers, **kwargs):
+        super().__init__(size_hint=(0.6, 0.4), **kwargs)
+        self.translator = translator_widget
+        layout = BoxLayout(orientation="vertical", spacing=dp(10), padding=dp(20))
+        for t in tiers:
+            btn = Button(text=f"Tier {t}", size_hint_y=None, height=dp(48))
+            btn.bind(on_release=lambda _, tier=t: self.start_tier(tier))
+            layout.add_widget(btn)
+        self.add_widget(layout)
+
+    def start_tier(self, tier):
+        popup = FlashCardPopup(translator_widget=self.translator)
+        popup.current_tier   = tier
+        popup.unlocked_tiers = self.translator.unlocked_tiers
+        popup.load_tier(tier)
+        popup.open()
+        self.dismiss()
+
+# -----------------------------
+# Main Translator Widget
+# -----------------------------
+class TranslatorWidget(BoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # load the set of unlocked tiers (persists across runs)
+        self.unlocked_tiers = load_unlocked_tiers()
+        self.orientation = "vertical"
+        self.padding = [dp(10)] * 4
+        self.spacing = dp(10)
+
+        # Theme & header
+        self.view_mode = "Rebel"
+        self.colors = VIEW_MODES[self.view_mode]
+        Window.clearcolor = self.colors["bg"]
+
+        from kivy.uix.anchorlayout import AnchorLayout
+
+        header = AnchorLayout(
+            anchor_x="right",  # push children to the right edge
+            anchor_y="center", # vertically centered
+            size_hint_y=None,
+            height=dp(48),
+        )
+
+        header = BoxLayout(
+            orientation="horizontal",
+            spacing=dp(10),
+            size_hint_y=None,
+            height=dp(48),
+        )
+
+        header.add_widget(Widget(size_hint_x=1))
+
+        self.learn_btn = MainIconButton(
+            text="\uf11b",
+            font_size=dp(24),
+            normal_color=self.colors["icon_normal"],
+            active_color=self.colors["icon_active"],
+            font_name="fonts/icon-font.ttf",
+            size_hint=(None, None),
+            size=(dp(48), dp(48))
+        )
+
+        self.learn_btn.bind(on_release=lambda _: self.open_learning())
+        header.add_widget(self.learn_btn)
+
+        self.gear_btn = MainIconButton(
+            text="\uf013",
+            font_size=dp(24),
+            normal_color=self.colors["icon_normal"],
+            active_color=self.colors["icon_active"],
+            font_name="fonts/icon-font.ttf",
+            size_hint=(None, None),
+            size=(dp(48), dp(48))
+)
+        self.gear_btn.bind(on_release=lambda _: self.open_settings())
+        header.add_widget(self.gear_btn)
+        self.add_widget(header)
+
+        # English input
+        self.english_input = TextInput(
+            hint_text="English Input", multiline=True,
+            font_size=dp(18), font_name="fonts/VT323-Regular.ttf",
+            size_hint_y=0.15,
+            background_color=self.colors["container"],
+            foreground_color=self.colors["input_text"],
+            padding=[dp(10)]*4
+        )
+        self.english_input.bind(focus=lambda inst, val: update_border(inst, val))
+        self.english_input.bind(text=self.on_english_text)
+        self.add_widget(self.english_input)
+
+        # Aurebesh input
+        self.aurebesh_input = TextInput(
+            hint_text="Aurebesh Translation", multiline=True,
+            font_size=dp(18), font_name="Aurebesh-ImpRemnant.otf",
+            size_hint_y=0.15,
+            background_color=self.colors["container"],
+            foreground_color=self.colors["input_text"],
+            padding=[dp(10)]*4
+        )
+        self.aurebesh_input.bind(focus=lambda inst, val: update_border(inst, val))
+        self.aurebesh_input.bind(text=self.on_aurebesh_text)
+        self.aurebesh_input.input_type = 'null'  # disable system keyboard
+        self.add_widget(self.aurebesh_input)
+
+        # Action bar
+        self.bottom_bar = BoxLayout(
+            orientation="horizontal",
+            size_hint_y=None,
+            height=dp(48),
+            spacing=dp(10)
+        )
+        for icon, handler in [
+            ("\uf0c5", self.copy_active_text),
+            ("\uf0ea", self.paste_text),
+            ("\uf00d", self.clear_texts),
+            ("\uf02e", self.open_saved_popup),
+            ("\uf005", self.save_current_phrase),
+            ("\uf1da", self.open_history),
+        ]:
+            btn = MainIconButton(
+                text=icon,
+                font_size=dp(24),
+                normal_color=self.colors["icon_normal"],
+                active_color=self.colors["icon_active"],
+                font_name="fonts/icon-font.ttf",
+                size_hint=(1, None),
+                height=dp(48), 
+            )
+            btn.bind(on_release=lambda _, fn=handler: fn())
+            self.bottom_bar.add_widget(btn)
+        self.add_widget(self.bottom_bar)
+
+        # Custom Aurebesh keyboard
+        self.keyboard_overlay = CustomKeyboard(
+            input_target=self.aurebesh_input,
+            translator=self,
+            size_hint_y=None,
+            height=dp(200)
+        )
+        self.add_widget(self.keyboard_overlay)
+
+    # Translation callbacks
+    def on_english_text(self, instance, value):
+        translated = english_to_aurebesh(value)
+        self.aurebesh_input.unbind(text=self.on_aurebesh_text)
+        self.aurebesh_input.text = translated
+        self.aurebesh_input.bind(text=self.on_aurebesh_text)
+
+    def on_aurebesh_text(self, instance, value):
+        translated = aurebesh_to_english(value)
+        self.english_input.unbind(text=self.on_english_text)
+        self.english_input.text = translated
+        self.english_input.bind(text=self.on_english_text)
+
+    # Action handlers
+    def copy_active_text(self):
+        if self.english_input.focus:
+            Clipboard.copy(self.english_input.text)
+        elif self.aurebesh_input.focus:
+            Clipboard.copy(self.aurebesh_input.text)
+        else:
+            Clipboard.copy(self.english_input.text)
+
+    def paste_text(self):
+        pasted = Clipboard.paste()
+        # Decide target: whichever is focused, or default to English
+        if self.english_input.focus:
+            target = self.english_input
+        elif self.aurebesh_input.focus:
+            target = self.aurebesh_input
+        else:
+            target = self.english_input
+            target.focus = True
+
+        # Insert at current cursor position
+        cursor = target.cursor_index()
+        target.text = target.text[:cursor] + pasted + target.text[cursor:]
+        # Move cursor to end of pasted text
+        target.cursor = (cursor + len(pasted), 0)
+
+    def clear_texts(self):
+        self.english_input.text = ""
+        self.aurebesh_input.text = ""
+
+    def open_saved_popup(self):
+        popup = SavedPopup(translator_widget=self)
+        popup.open()
+
+    def save_current_phrase(self):
+        phrase = self.english_input.text.strip()
+        if phrase and phrase not in saved_phrases:
+            saved_phrases.append(phrase)
+            save_phrases_to_file(saved_phrases)
+
+    def open_history(self):
+        if self.english_input.text.strip():
+            add_history_entry(self.english_input.text, self.aurebesh_input.text)
+        popup = HistoryPopup(translator_widget=self)
+        popup.open()
+
+    def open_settings(self):
+        popup = SettingsPopup(translator_widget=self)
+        popup.open()
+
+    def open_learning(self):
+        popup = GameSelectionPopup(translator_widget=self)
+        popup.open()
+
+    def open_flashcards(self):
+        if len(self.unlocked_tiers) > 1:
+            popup = TierSelectPopup(translator_widget=self, tiers=sorted(self.unlocked_tiers))
+        else:
+            popup = FlashCardPopup(translator_widget=self)
+        popup.open()
+
+    def open_word_search(self):
+        print("🔍 open_word_search() called")
+        words = ["MAY", "THE", "FORCE", "BE", "WITH", "YOU"]
+        WordSearchPopup(words=words, grid_size=12).open()
+
+        # Just open the popup; it builds its own layout now
+        words = ["MAY", "THE", "FORCE", "BE", "WITH", "YOU"]
+        WordSearchPopup(words=words, grid_size=12).open()
+
+    def apply_theme(self):
+        # Grab the freshly-selected colors
+        cs = self.colors
+        # Update the window background
+        Window.clearcolor = cs["bg"]
+        # Update both text inputs
+        self.english_input.background_color = cs["container"]
+        self.english_input.foreground_color = cs["input_text"]
+        self.aurebesh_input.background_color = cs["container"]
+        self.aurebesh_input.foreground_color = cs["input_text"]
+        # Update your gear button
+        self.gear_btn.normal_color = cs["icon_normal"]
+        self.gear_btn.active_color = cs["icon_active"]
+        self.gear_btn.background_color = cs["icon_normal"]
+        # update Learn/Game button
+        self.learn_btn.normal_color = cs["icon_normal"]
+        self.learn_btn.active_color = cs["icon_active"]
+        self.learn_btn.background_color = cs["icon_normal"]
+        # Update the icon row buttons
+        for btn in self.bottom_bar.children:
+            btn.normal_color = cs["icon_normal"]
+            btn.active_color = cs["icon_active"]
+            btn.background_color = cs["icon_normal"]
+# -----------------------------
+# Custom Keyboard
+# -----------------------------
+
+class CustomKeyboard(GridLayout):
+    def __init__(self, input_target, translator=None, **kwargs):
+        super().__init__(**kwargs)
+        self.cols = 1                 # one row per BoxLayout
+        self.spacing = dp(4)
+        self.input_target = input_target
+        self.translator = translator
+        self.build_keyboard()
+
+    def build_keyboard(self):
+        rows = [
+            list("QWERTYUIOP"),
+            list("ASDFGHJKL"),
+            list("ZXCVBNM"),
+            ["SPACE", "BACK", "ENTER"],
+            ["CH", "SH", "TH", "NG", "AE", "EO", "KH", "OO"],
+        ]
+        ligature_map = {
+            "CH": "\ue011", "SH": "\ue016", "TH": "\ue018", "NG": "\ue014",
+            "AE": "\ue010", "EO": "\ue012", "KH": "\ue013", "OO": "\ue015"
+        }
+
+        for row in rows:
+            row_layout = BoxLayout(
+                orientation="horizontal",
+                size_hint_y=None,
+                height=dp(48),
+                spacing=dp(4),
+            )
+            for key in row:
+                btn = Button(
+                    text=key,
+                    font_size=dp(18),
+                    font_name="Aurebesh-ImpRemnant.otf",
+                    background_color=(0, 0, 0, 0.7),
+                    color=(1, 0.631, 0.129, 1),
+                    size_hint=(1, 1),
+                )
+                btn.bind(on_release=self.on_key_press)
+                btn.key_value = ligature_map.get(key, key.upper())
+                row_layout.add_widget(btn)
+            self.add_widget(row_layout)
+
+    def on_key_press(self, button):
+        key = button.key_value
+        input_box = self.input_target
+        text = input_box.text
+        cursor = input_box.cursor_index()
+
+        # 1) Merge last char + new char into a ligature if possible
+        if len(key) == 1 and key.isalpha() and text:
+            duo = (text[-1] + key).lower()
+            if duo in ligatures:
+                glyph = ligatures[duo]
+                input_box.text = text[:-1] + glyph
+                input_box.cursor = (len(input_box.text), 0)
+                if self.translator:
+                    self.translator.on_aurebesh_text(input_box, input_box.text)
+                return
+
+        # 2) Handle SPACE, BACK, ENTER
+        if key == "SPACE":
+            key = " "
+        elif key == "BACK":
+            if cursor > 0:
+                input_box.text = text[:cursor-1] + text[cursor:]
+                input_box.cursor = (cursor-1, 0)
+            return
+        elif key == "ENTER":
+            key = "\n"
+
+        # 3) Normal insert
+        input_box.text = text[:cursor] + key + text[cursor:]
+        new_index = cursor + len(key)
+        input_box.cursor = input_box.get_cursor_from_index(new_index)
+
+        # 4) Trigger English translation
+        if self.translator:
+            self.translator.on_aurebesh_text(input_box, input_box.text)
+
+# -----------------------------
+# The Kivy App
+# -----------------------------
+class AurebeshTranslatorApp(App):
+    def build(self):
+        return TranslatorWidget()
+
+if __name__ == '__main__':
+    AurebeshTranslatorApp().run()

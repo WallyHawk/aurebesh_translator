@@ -1,0 +1,338 @@
+theme_row = BoxLayout(orientation="horizontal", size_hint=(1, None), height=dp(48), spacing=dp(10))
+        theme_label = Label(
+            text="Theme:",
+            size_hint=(0.4, 1),
+            font_size=dp(28),
+            color=cs["input_text"],
+            font_name="fonts/VT323-Regular.ttf",
+            valign="middle"
+        )
+        theme_label.bind(size=lambda inst, val: setattr(inst, 'text_size', (val[0], val[1])))
+        self.vm_dropdown = DropDown()
+        self.vm_btn = Button(
+            text=self.translator.view_mode,
+            size_hint=(0.6, 1),
+            background_color=cs["icon_normal"],
+            background_normal="",
+            color=get_contrasting_color(cs["icon_normal"]),
+            font_name="fonts/VT323-Regular.ttf",
+            font_size=dp(24)
+        )
+        self.vm_btn.bind(on_release=self.vm_dropdown.open)
+        for mode in ["Rebel", "Imperial", "Light Side", "Dark Side", "Bounty Hunter"]:
+            btn = Button(
+                text=mode,
+                size_hint_y=None,
+                height=dp(48),
+                background_color=cs["icon_normal"],
+                background_normal="",
+                color=get_contrasting_color(cs["icon_normal"]),
+                font_name="fonts/VT323-Regular.ttf",
+                font_size=dp(24)
+            )
+            btn.bind(on_release=lambda btn, mode=mode: self.select_view_mode(mode))
+            self.vm_dropdown.add_widget(btn)
+        theme_row.add_widget(theme_label)
+        theme_row.add_widget(self.vm_btn)
+        content.add_widget(theme_row)
+        # Apply Row – New: Immediately apply the changes.
+        apply_row = BoxLayout(orientation="horizontal", size_hint=(1, None), height=dp(48), spacing=dp(10))
+        apply_btn = MainIconButton(
+            text="Apply",
+            font_size=dp(24),
+            normal_color=cs["icon_normal"],
+            active_color=cs["icon_active"],
+            font_name="fonts/VT323-Regular.ttf",
+            size_hint=(1, 1)
+        )
+        apply_btn.bind(on_release=lambda x: self.apply_theme())
+        apply_row.add_widget(apply_btn)
+        content.add_widget(apply_row)
+        # Reset Defaults Row
+        reset_row = BoxLayout(orientation="horizontal", size_hint=(1, None), height=dp(48), spacing=dp(10))
+        reset_btn = MainIconButton(
+            text="Reset Defaults",
+            font_size=dp(24),
+            normal_color=cs["icon_normal"],
+            active_color=cs["icon_active"],
+            font_name="fonts/VT323-Regular.ttf",
+            size_hint=(1, 1)
+        )
+        reset_btn.bind(on_release=self.reset_defaults)
+        reset_row.add_widget(reset_btn)
+        content.add_widget(reset_row)
+        # About Row
+        about_row = BoxLayout(orientation="horizontal", size_hint=(1, None), height=dp(48), spacing=dp(10))
+        about_btn = MainIconButton(
+            text="About",
+            font_size=dp(24),
+            normal_color=cs["icon_normal"],
+            active_color=cs["icon_active"],
+            font_name="fonts/VT323-Regular.ttf",
+            size_hint=(1, 1)
+        )
+        about_btn.bind(on_release=lambda x: self.open_about())
+        about_row.add_widget(about_btn)
+        content.add_widget(about_row)
+        self.content_area.add_widget(content)
+
+    def on_font_size_change(self, instance, value):
+        new_size = int(value)
+        self.translator.english_input.font_size = new_size
+        self.translator.aurebesh_input.font_size = new_size
+
+    def select_view_mode(self, mode):
+        self.vm_btn.text = mode
+        self.translator.view_mode = mode
+        self.translator.colors = VIEW_MODES[mode]
+        self.vm_dropdown.dismiss()
+
+    def reset_defaults(self, instance):
+        default_font_size = 32
+        self.fs_slider.value = default_font_size
+        self.translator.english_input.font_size = default_font_size
+        self.translator.aurebesh_input.font_size = default_font_size
+        self.translator.view_mode = "Rebel"
+        self.translator.colors = VIEW_MODES["Rebel"]
+        self.vm_btn.text = "Rebel"
+
+    def open_about(self):
+        about = AboutPopup(translator_widget=self.translator)
+        about.open()
+
+    def apply_theme(self):
+        self.translator.apply_theme()
+        self.dismiss()
+
+# -----------------------------
+# Flash‐Card Tier Definitions
+# -----------------------------
+TIERS = {
+    # Tier 1 is single letters + digraph ligatures
+    1: [chr(c) for c in range(ord('a'), ord('z')+1)] + list(ligatures.keys()),
+    # Tier 2 might be simple words (you can flesh this out later)
+    2: [
+  "lightsaber", "blaster", "bowcaster", "thermal detonator", "ion cannon",
+  "disruptor", "electrostaff", "force pike", "comlink", "datapad",
+
+  "x-wing", "tie fighter", "millennium falcon", "star destroyer", "tie advanced",
+  "snowspeeder", "podracer", "slave i", "speeder bike", "imperial shuttle",
+
+  "luke", "leia", "han", "chewbacca", "yoda",
+  "obi wan", "anakin", "vader", "palpatine", "lando",
+
+  "wookiee", "ewok", "rodian", "twi'lek", "zabrak",
+  "mon calamari", "duros", "bothan", "kashyyykian", "jawa",
+
+  "tatooine", "coruscant", "naboo", "hoth", "endor",
+  "kamino", "geonosis", "mustafar", "dagobah", "kashyyyk",
+
+  "rebel alliance", "galactic empire", "first order", "resistance", "jedi order",
+  "sith order", "bounty hunters", "clone troopers", "stormtroopers", "droids",
+
+  "death star", "jabbas palace", "cloud city", "mos eisley", "mos espas",
+  "jundland wastes", "ootini", "yavin 4", "theed palace", "hanging gardens",
+
+  "hyperspace", "blue squadron", "gold squadron", "rogue squadron", "force sensitive",
+  "holocron", "midichlorian", "lightspeed", "hyperdrive", "cantina",
+
+  "padawan", "jedi master", "jedi knight", "sith lord", "grand moff",
+  "moff", "admiral", "general", "commander", "captain",
+
+  "u-wing", "a-wing", "b-wing", "tie interceptor", "tie bomber",
+  "starfighter", "cr90 corvette", "venator class star destroyer", "mon cal amphibious cruiser", "droid control ship"
+]
+,
+    # Tier 3 is your full preset phrases
+    3: preset_phrases
+}
+
+
+# -----------------------------
+# Games Popup
+# -----------------------------
+class GameSelectionPopup(ModalView):
+    def __init__(self, translator_widget, **kwargs):
+        super().__init__(size_hint=(0.8, 0.6), **kwargs)
+        self.translator = translator_widget
+        self.auto_dismiss = False   # force use of close button
+
+        # 1) Outer vertical layout fills the popup
+        layout = BoxLayout(
+            orientation="vertical",
+            spacing=dp(10),
+            padding=[dp(10)] * 4
+        )
+
+        # 2) Spacer pushes everything else *up*
+        layout.add_widget(Widget(size_hint_y=1))
+
+        # 3) Game buttons (added bottom→top order)
+        btn_search = Button(text="Word Search", size_hint_y=None, height=dp(48))
+        btn_search.bind(on_release=lambda *_: (self.translator.open_word_search(), self.dismiss()))
+        layout.add_widget(btn_search)
+
+        btn_flash = Button(text="Flash-Cards", size_hint_y=None, height=dp(48))
+        btn_flash.bind(on_release=lambda *_: (self.translator.open_flashcards(), self.dismiss()))
+        layout.add_widget(btn_flash)
+
+        # 4) Header with Close icon goes *last*, so it appears at the top
+        header = BoxLayout(orientation="horizontal", size_hint_y=None, height=dp(48))
+        header.add_widget(Widget())  # pushes close-button right
+        close_btn = MainIconButton(
+            text="\uf057",  # FontAwesome “X” icon
+            font_size=dp(24),
+            normal_color=self.translator.colors["icon_normal"],
+            active_color=self.translator.colors["icon_active"],
+            font_name="fonts/icon-font.ttf",
+            size_hint=(None, None),
+            size=(dp(48), dp(48))
+        )
+        close_btn.bind(on_release=lambda *_: self.dismiss())
+        header.add_widget(close_btn)
+        layout.add_widget(header)
+
+        # 5) Finally, add this fully-built layout to the popup
+        self.add_widget(layout)
+
+# -----------------------------
+# Flash-Card Quiz Popup
+# -----------------------------
+import random
+from kivy.clock import Clock
+from kivy.uix.gridlayout import GridLayout
+
+class FlashCardPopup(ModalView):
+    def __init__(self, translator_widget, **kwargs):
+        super().__init__(size_hint=(0.9, 0.9), **kwargs)
+        self.translator = translator_widget
+        self.auto_dismiss = False
+
+        # 1) Tier state (don’t load cards yet)
+        self.current_tier   = 1
+        self.unlocked_tiers = {1}
+
+        # 2) Build the UI
+        self.layout = BoxLayout(orientation="vertical", padding=dp(20), spacing=dp(10))
+        
+        # Score label (will be updated by next_card)
+        self.score_lbl = Label(text="", size_hint_y=None, height=dp(30), color=(1, 1, 1, 1))
+        self.layout.add_widget(self.score_lbl)
+
+        # Progress bar
+        self.progress = ProgressBar(max=1, value=0, size_hint_y=None, height=dp(80))
+        self.layout.add_widget(self.progress)
+
+        # Prompt (Aurebesh glyph)
+        self.prompt = Label(
+            font_name="Aurebesh-ImpRemnant.otf",
+            font_size=dp(32),
+            halign="center",
+            valign="middle",
+            size_hint_y=None,
+            height=dp(100)
+        )
+        self.prompt.text_size = (self.prompt.width, None)
+        self.prompt.bind(
+            width=lambda inst, w: setattr(inst, 'text_size', (w, None))
+        )
+
+        self.layout.add_widget(self.prompt)
+
+        # Load sounds
+        self.sound_correct = SoundLoader.load('sound/ding.mp3')
+        self.sound_wrong   = SoundLoader.load('sound/buzz.mp3')
+
+        # Answer buttons grid
+        btn_grid = GridLayout(cols=2, spacing=dp(10), size_hint_y=None, height=dp(200))
+        self.answer_btns = []
+        for _ in range(4):
+            b = Button(
+                font_size=dp(20),
+                size_hint=(1, None),
+                height=dp(48),
+                background_normal='',
+                background_down='',
+                background_disabled_normal='',
+                background_disabled_down='',
+                background_color=self.translator.colors["container"],
+                color=(1,1,1,1),
+                disabled_color=(1,1,1,1),
+                halign='center',
+                valign='middle',
+                text_size=(0, None)
+            )
+            b.bind(on_release=self.check_answer)
+            self.answer_btns.append(b)
+            btn_grid.add_widget(b)
+
+            # enable text wrapping at the button’s current width
+            b.text_size = (b.width, None)
+            b.halign    = 'center'
+            b.valign    = 'middle'
+            b.bind(width=lambda inst, w: setattr(inst, 'text_size', (w, None)))
+
+            # 1) Make the text wrap at the button’s width minus padding
+            b.bind(width=lambda inst, w: setattr(inst, 'text_size', (w - dp(20), None)))
+
+            # 2) Auto‐grow the height based on wrapped text size
+            b.bind(texture_size=lambda inst, ts: setattr(inst, 'height', ts[1] + dp(20)))
+        
+        self.layout.add_widget(btn_grid)
+
+        # Close button
+        close = Button(text="Close", size_hint_y=None, height=dp(48))
+        close.bind(on_release=lambda *_: self.dismiss())
+        self.layout.add_widget(close)
+
+        # Attach the layout
+        self.add_widget(self.layout)
+
+        # 3) Now that all widgets exist, load the first deck
+        self.load_tier(self.current_tier)
+
+    def load_tier(self, tier):
+        # 1) Build & shuffle the new deck
+        pool = TIERS[tier].copy()
+        random.shuffle(pool)
+        self.cards = pool
+
+        # 2) Reset indices and score
+        self.index = 0
+        self.score = 0
+
+        # 3) Reset progress bar to match deck size
+        self.progress.max = len(self.cards)
+        self.progress.value = 0
+
+        # 4) Display the first card in the already‐built UI
+        self.next_card()
+
+    def next_card(self):
+        # ——— 1) End-of-deck? show pass/fail + buttons ———
+        if self.index >= len(self.cards):
+            total = len(self.cards)
+            pct   = self.score / total
+            passed = pct >= 0.7
+            status = "DIRECTIVE PASSED" if passed else "DIRECTIVE FAILED"
+
+            # Hide the small score label and progress bar
+            self.score_lbl.opacity = 0
+            self.progress.opacity  = 0
+
+            # Use the prompt label for a big summary
+            self.prompt.font_name = "fonts/VT323-Regular.ttf"
+            self.prompt.font_size = dp(26)
+            self.prompt.text = f"SCORE: {self.score}/{total}\n{status}"
+
+            aus_status = english_to_aurebesh(status.lower())
+
+            # cleanup old buttons
+            for w in getattr(self, 'end_buttons', []):
+                try: self.layout.remove_widget(w)
+                except: pass
+            self.end_buttons = []            
+
+            # compute pass/fail
+            total = len(self.cards)
+            status = "DIRECTIVE PASSED" if passed else "DIRECTIVE FAILED"

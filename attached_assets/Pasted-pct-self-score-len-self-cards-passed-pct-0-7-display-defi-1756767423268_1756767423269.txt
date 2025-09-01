@@ -1,0 +1,300 @@
+pct    = self.score / len(self.cards)
+            passed = pct >= 0.7
+
+            # display definitive system report
+            self.score_lbl.color = (0,1,0,1) if passed else (1,0,0,1)
+            self.score_lbl.text  = f"Score: {self.score}/{total}   {status}"
+
+            # Restart button
+            restart = Button(
+                text="Restart",
+                size_hint_y=None, height=dp(48),
+                background_normal='',
+                background_color=self.translator.colors["accent"],
+                color=get_contrasting_color(self.translator.colors["accent"])
+            )
+            restart.bind(on_release=self.restart_quiz)
+            self.layout.add_widget(restart)
+            self.end_buttons.append(restart)
+
+            # Continue button
+            next_tier = self.current_tier + 1
+            # if they passed, unlock & persist the new tier
+            if passed and next_tier in TIERS:
+                self.translator.unlocked_tiers.add(next_tier)
+                save_unlocked_tiers(self.translator.unlocked_tiers)
+            if next_tier in TIERS:
+                cont_text = f"Continue to Tier {next_tier}"
+            else:
+                cont_text = "Restart or Close"
+
+            cont = Button(
+                text=cont_text,
+                size_hint_y=None, height=dp(48),
+                background_normal='',
+                background_color=self.translator.colors["accent"],
+                color=get_contrasting_color(self.translator.colors["accent"])
+            )
+            cont.bind(on_release=self.continue_quiz)
+            self.layout.add_widget(cont)
+            self.end_buttons.append(cont)
+
+            return
+
+        # ——— 2) Otherwise, show the next card as normal ———
+        # live score in white
+        self.score_lbl.color = (1,1,1,1)
+        self.score_lbl.text  = f"{self.score} / {len(self.cards)}"
+        self.progress.value  = self.index
+
+        eng = self.cards[self.index]
+        self.prompt.text = english_to_aurebesh(eng)
+
+        # pick & display four choices
+        others = [o for o in self.cards if o != eng]
+        choices = random.sample(others, 3) + [eng]
+        random.shuffle(choices)
+        for btn, text in zip(self.answer_btns, choices):
+            btn.text             = text
+            btn.background_color = self.translator.colors["container"]
+            btn.color            = (1,1,1,1)
+            btn.disabled         = False
+            btn.opacity          = 1
+
+
+    def check_answer(self, btn):
+        correct = self.cards[self.index]
+        container = self.translator.colors["container"]
+        label_col = self.translator.colors["label"]
+        green = (0, 1, 0, 1)
+        red   = (1, 0, 0, 1)
+        white = (1, 1, 1, 1)
+
+        if btn.text == correct:
+            self.sound_correct.play()
+            Animation(
+                background_color=green,
+                color=white,
+                duration=0.2
+            ).start(btn)
+            self.score += 1
+        else:
+            self.sound_wrong.play()
+            Animation(
+                background_color=red,
+                color=white,
+                duration=0.2
+            ).start(btn)
+            # highlight correct
+            for b2 in self.answer_btns:
+                if b2.text == correct:
+                    Animation(
+                        background_color=green,
+                        color=white,
+                        duration=0.3
+                    ).start(b2)
+
+        # disable & advance
+        for b2 in self.answer_btns:
+            b2.disabled = True
+        self.index += 1
+        Clock.schedule_once(lambda dt: self.next_card(), 0.6)
+
+    def restart_quiz(self, *args):
+        # restore prompt style
+        self.prompt.font_name = "Aurebesh-ImpRemnant.otf"
+        self.prompt.font_size = dp(32)
+        # make the in‐quiz widgets visible again
+        self.score_lbl.opacity = 1
+        self.progress.opacity  = 1
+        # 1) Remove both end‐of‐deck buttons
+        for w in getattr(self, 'end_buttons', []):
+            try:    self.layout.remove_widget(w)
+            except: pass
+        self.end_buttons = []
+
+        # 2) Reset score label to default color & text
+        self.score_lbl.color = self.translator.colors["label"]
+        self.score_lbl.text  = ""
+
+        # 3) Restore and show answer buttons
+        for b in self.answer_btns:
+            b.disabled = False
+            b.opacity  = 1
+            # reset their theme colors too
+            b.background_color = self.translator.colors["container"]
+            b.color            = self.translator.colors["label"]
+
+        # 4) Reset progress bar
+        self.progress.value = 0
+
+        # 5) Reload the deck & show first card
+        self.load_tier(self.current_tier)
+
+    def continue_quiz(self, *args):
+        # restore prompt style
+        self.prompt.font_name = "Aurebesh-ImpRemnant.otf"
+        self.prompt.font_size = dp(32)
+        # make the in‐quiz widgets visible again
+        self.score_lbl.opacity = 1
+        self.progress.opacity  = 1
+
+        # 1) Remove both end‐of‐deck buttons
+        for w in getattr(self, 'end_buttons', []):
+            try:    self.layout.remove_widget(w)
+            except: pass
+        self.end_buttons = []
+
+        # 2) Restore answer buttons
+        for b in self.answer_btns:
+            b.disabled         = False
+            b.opacity          = 1
+            b.background_color = self.translator.colors["container"]
+            b.color            = (1, 1, 1, 1)
+
+        # 3) Advance to next tier if available
+        next_tier = self.current_tier + 1
+        if next_tier in TIERS:
+            self.current_tier = next_tier
+
+        # 4) Load that tier’s deck
+        self.load_tier(self.current_tier)
+
+from kivy.uix.modalview import ModalView
+from kivy.uix.boxlayout  import BoxLayout
+from kivy.uix.button     import Button
+from kivy.metrics         import dp
+
+class WordSearchPopup(ModalView):
+    def __init__(self, words, grid_size=12, **kwargs):
+        super().__init__(**kwargs)
+        self.size_hint = (0.9, 0.9)
+        self.words = [w.upper() for w in words]
+        self.grid_size = grid_size
+        self.grid, self.placed = generate_word_search(self.words, grid_size)
+        self.selected = []
+
+        # Build a single layout up front
+        layout = BoxLayout(orientation='vertical', spacing=dp(8), padding=dp(8))
+
+        # 1) Instruction icon (opens small popup)
+        from kivy.uix.anchorlayout import AnchorLayout
+        header = AnchorLayout(anchor_x='right', anchor_y='center',
+                               size_hint_y=None, height=dp(40))
+        instr_btn = Button(
+            text='?', size_hint=(None,None), size=(dp(30), dp(30)),
+            background_normal='', background_color=(0.9,0.9,0.5,1)
+        )
+        instr_btn.bind(on_release=self.show_instructions)
+        header.add_widget(instr_btn)
+        layout.add_widget(header)
+
+        # 2) Grid of Aurebesh letters
+        grid_layout = GridLayout(cols=grid_size, rows=grid_size, spacing=1)
+        for y in range(grid_size):
+            for x in range(grid_size):
+                letter = self.grid[y][x]
+                btn = Button(
+                    text=letter,
+                    font_name="Aurebesh-ImpRemnant.otf",
+                    font_size=dp(24),
+                    background_color=(0,0,0,0),
+                    color=(1,1,1,1),
+                )
+                btn.bind(on_release=lambda btn, x=x, y=y: self.on_cell_tap((x,y), btn))
+                grid_layout.add_widget(btn)
+        layout.add_widget(grid_layout)
+
+        # 3) Clear-selection button
+        clear_btn = Button(text="Clear Selection", size_hint_y=None, height=dp(30))
+        clear_btn.bind(on_release=lambda *a: self.clear_selection())
+        layout.add_widget(clear_btn)
+
+        # 4) English word list
+        word_list = Label(
+            text="Find: " + ", ".join(self.words),
+            size_hint_y=None, height=dp(40)
+        )
+        layout.add_widget(word_list)
+
+        # 5) Close button
+        close = Button(text="Close", size_hint_y=None, height=dp(48))
+        close.bind(on_release=lambda *a: self.dismiss())
+        layout.add_widget(close)
+
+        # 6) Attach everything
+        self.add_widget(layout)
+
+    def on_cell_tap(self, pos, btn):
+        # clear any prior “first-tap” highlight
+        if len(self.selected) == 1:
+            prev_btn = self.selected[0][1]
+            prev_btn.background_color = (1,1,1,1)
+
+        # record & highlight this tap
+        self.selected.append((pos, btn))
+        btn.background_color = (1,1,0,1)  # yellow for “this is tapped”
+        
+        # update our “Selected:” label
+        coords = [p for p,_ in self.selected]
+        letters = [self.grid[y][x] for x,y in coords]
+        self.selected_label.text = f"Selected: {' – '.join(letters)}"
+
+        # once we have two taps, check correctness
+        if len(self.selected) == 2:
+            (x1,y1), btn1 = self.selected[0]
+            (x2,y2), btn2 = self.selected[1]
+            matched = False
+            for word, coords in self.placed:
+                if (coords[0] == (x1,y1) and coords[-1] == (x2,y2)) or \
+                   (coords[-1] == (x1,y1) and coords[0] == (x2,y2)):
+                    matched = True
+                    # highlight the entire found word in green
+                    for cx, cy in coords:
+                        idx = cy * self.grid_size + cx
+                        cell = grid_layout.children[self.grid_size*self.grid_size - 1 - idx]
+                        cell.background_color = (0.7,1,0.7,1)
+                    break
+
+            # mark wrong taps in red
+            wrong_buttons = [b for _, b in self.selected]
+            for b in wrong_buttons:
+                b.background_color = (1,0.7,0.7,1)
+            # after 0.5s, reset them back to white
+            Clock.schedule_once(
+                lambda dt, btns=wrong_buttons: [setattr(btn, 'background_color', (1,1,1,1)) for btn in btns],
+                0.5
+            )
+
+            # reset selection state
+            self.selected = []
+            self.selected_label.text = "Selected:   "
+    
+    def clear_selection(self):
+        # reset any highlighted cells and clear state
+        for _, btn in self.selected:
+            btn.background_color = (1,1,1,1)
+        self.selected = []
+
+    def show_instructions(self, *args):
+        from kivy.uix.modalview import ModalView
+        help_popup = ModalView(size_hint=(0.6, 0.4))
+        msg = Label(
+            text="How to play:\nTap the first and last letter of an English word to select it.",
+            halign="center", valign="middle"
+        )
+        msg.text_size = (help_popup.width * 0.9, None)
+        help_popup.add_widget(msg)
+        help_popup.open()    
+
+        self.selected.append((pos, btn))
+        if len(self.selected) == 2:
+            (x1,y1), _ = self.selected[0]
+            (x2,y2), _ = self.selected[1]
+            # check if these coords match any placed word
+            for word, coords in self.placed:
+                if coords[0] == (x1,y1) and coords[-1] == (x2,y2) or \
+                   coords[-1] == (x1,y1) and coords[0] == (x2,y2):
+                    # highlight all letters
+                    for cx, cy in coords:
+                        index = cy * self.grid_size + cx
