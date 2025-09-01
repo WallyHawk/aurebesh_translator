@@ -79,7 +79,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
       } else {
         // Game finished
         const finalScore = correct ? score + 1 : score;
-        if (finalScore >= 8 && gameProgress) {
+        if (finalScore >= 25 && gameProgress) {
           // Unlock next tier
           const newUnlockedTiers = [...gameProgress.unlockedTiers];
           if (!newUnlockedTiers.includes(currentTier + 1) && currentTier < 3) {
@@ -159,7 +159,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
               <div className="text-center">
                 <h3 className="text-xl font-bold text-card-foreground mb-2">Game Complete!</h3>
                 <p className="text-muted-foreground">Final Score: {score}/{gameCards.length}</p>
-                {score >= 8 && currentTier < 3 && gameProgress.unlockedTiers.includes(currentTier + 1) && (
+                {score >= 25 && currentTier < 3 && gameProgress.unlockedTiers.includes(currentTier + 1) && (
                   <p className="text-accent mt-2">Next tier unlocked!</p>
                 )}
               </div>

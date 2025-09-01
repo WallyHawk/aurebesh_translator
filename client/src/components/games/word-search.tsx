@@ -15,6 +15,8 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
   const [grid, setGrid] = useState<WordSearchGrid | null>(null);
   const [selectedCells, setSelectedCells] = useState<Array<[number, number]>>([]);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [hintsUsed, setHintsUsed] = useState<Record<string, number>>({});
+  const [flashingCell, setFlashingCell] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -28,6 +30,8 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
     setGrid(newGrid);
     setSelectedCells([]);
     setIsSelecting(false);
+    setHintsUsed({});
+    setFlashingCell(null);
   };
 
   const handleCellClick = (x: number, y: number) => {
@@ -100,6 +104,28 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
     initializeGame();
   };
 
+  const useHint = (word: string) => {
+    if (!grid) return;
+    
+    const currentHints = hintsUsed[word] || 0;
+    if (currentHints >= 3) return; // Max 3 hints per word
+    
+    // Find the word position in the grid
+    const wordPosition = grid.wordPositions.find(pos => pos.word === word);
+    if (!wordPosition) return;
+    
+    // Get the first letter position
+    const firstLetterPos: [number, number] = [wordPosition.startX, wordPosition.startY];
+    
+    // Flash the first letter for 1 second
+    setFlashingCell(firstLetterPos);
+    setTimeout(() => setFlashingCell(null), 1000);
+    
+    // Update hints used
+    setHintsUsed(prev => ({ ...prev, [word]: currentHints + 1 }));
+    audioManager.play('success');
+  };
+
   if (!grid) {
     return null;
   }
@@ -143,6 +169,8 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
                       ? 'bg-green-500 text-white' 
                       : selectedCells.some(([x, y]) => x === cell.x && y === cell.y)
                       ? 'bg-accent text-accent-foreground'
+                      : flashingCell && flashingCell[0] === cell.x && flashingCell[1] === cell.y
+                      ? 'bg-yellow-400 text-black animate-pulse'
                       : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                   }`}
                   onClick={() => handleCellClick(cell.x, cell.y)}
@@ -157,19 +185,32 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
           {/* Words to Find */}
           <div className="bg-card p-3 rounded-lg mb-4 border border-border">
             <h3 className="text-sm font-medium mb-2 text-muted-foreground">Find these words:</h3>
-            <div className="grid grid-cols-3 gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-2 text-sm">
               {grid.wordsToFind.map((word) => (
-                <span
-                  key={word}
-                  className={`${
-                    grid.foundWords.includes(word) 
-                      ? 'text-green-500 line-through' 
-                      : 'text-card-foreground'
-                  }`}
-                  data-testid={`word-target-${word.toLowerCase()}`}
-                >
-                  {word}
-                </span>
+                <div key={word} className="flex items-center justify-between">
+                  <span
+                    className={`${
+                      grid.foundWords.includes(word) 
+                        ? 'text-green-500 line-through' 
+                        : 'text-card-foreground'
+                    }`}
+                    data-testid={`word-target-${word.toLowerCase()}`}
+                  >
+                    {word}
+                  </span>
+                  {!grid.foundWords.includes(word) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => useHint(word)}
+                      disabled={(hintsUsed[word] || 0) >= 3}
+                      className="h-6 px-2 text-xs ml-2"
+                      data-testid={`hint-${word.toLowerCase()}`}
+                    >
+                      💡 {3 - (hintsUsed[word] || 0)}
+                    </Button>
+                  )}
+                </div>
               ))}
             </div>
           </div>

@@ -34,7 +34,7 @@ export function englishToAurebesh(text: string): string {
       if (aurebeshCharacters[upperChar as keyof typeof aurebeshCharacters]) {
         result += aurebeshCharacters[upperChar as keyof typeof aurebeshCharacters];
       } else {
-        result += upperChar;
+        result += text[i]; // Keep original character if no mapping
       }
       i += 1;
     }

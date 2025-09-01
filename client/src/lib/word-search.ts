@@ -7,11 +7,19 @@ export interface WordSearchCell {
   belongsToWord?: string;
 }
 
+export interface WordPosition {
+  word: string;
+  startX: number;
+  startY: number;
+  direction: [number, number];
+}
+
 export interface WordSearchGrid {
   cells: WordSearchCell[][];
   wordsToFind: string[];
   foundWords: string[];
   size: number;
+  wordPositions: WordPosition[];
 }
 
 export function generateWordSearch(words: string[], size: number): WordSearchGrid {
@@ -33,6 +41,7 @@ export function generateWordSearch(words: string[], size: number): WordSearchGri
   ];
 
   const placed: Array<{ word: string; coords: Array<[number, number]> }> = [];
+  const wordPositions: WordPosition[] = [];
 
   // Place words in grid
   for (const word of words) {
@@ -93,6 +102,12 @@ export function generateWordSearch(words: string[], size: number): WordSearchGri
           grid[y][x].belongsToWord = upperWord;
         }
         placed.push({ word: upperWord, coords });
+        wordPositions.push({ 
+          word: upperWord, 
+          startX, 
+          startY, 
+          direction: [dirX, dirY] 
+        });
         placedOk = true;
       }
     }
@@ -117,6 +132,7 @@ export function generateWordSearch(words: string[], size: number): WordSearchGri
     wordsToFind: words.map(w => w.toUpperCase()),
     foundWords: [],
     size,
+    wordPositions,
   };
 }
 
