@@ -1,19 +1,42 @@
 import { Button } from '@/components/ui/button';
-import { ligatures } from '@/lib/aurebesh';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { ligatures, aurebeshCharacters } from '@/lib/aurebesh';
+import { useState } from 'react';
 
 interface AurebeshKeyboardProps {
   onKeyPress: (key: string) => void;
 }
 
 export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
+  const [showAurebesh, setShowAurebesh] = useState(false);
   const topRow = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
   const middleRow = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
   const bottomRow = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
   const ligatureKeys = Object.keys(ligatures).map(k => k.toUpperCase());
+  
+  const getCharacterDisplay = (letter: string) => {
+    if (showAurebesh && aurebeshCharacters[letter as keyof typeof aurebeshCharacters]) {
+      return aurebeshCharacters[letter as keyof typeof aurebeshCharacters];
+    }
+    return letter;
+  };
 
   return (
     <div className="bg-card rounded-lg p-4 border border-border">
-      <h3 className="text-sm font-medium mb-3 text-muted-foreground">Aurebesh Keyboard</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-medium text-muted-foreground">Aurebesh Keyboard</h3>
+        <div className="flex items-center space-x-2">
+          <Label htmlFor="aurebesh-toggle" className="text-xs text-muted-foreground">Latin</Label>
+          <Switch 
+            id="aurebesh-toggle"
+            checked={showAurebesh} 
+            onCheckedChange={setShowAurebesh}
+            data-testid="keyboard-toggle"
+          />
+          <Label htmlFor="aurebesh-toggle" className="text-xs text-muted-foreground font-aurebesh">Aurebesh</Label>
+        </div>
+      </div>
       <div className="space-y-2">
         {/* Letter Rows */}
         <div className="grid grid-cols-10 gap-1">
@@ -21,11 +44,11 @@ export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
             <Button
               key={letter}
               variant="ghost"
-              className="virtual-keyboard-key"
+              className={`virtual-keyboard-key ${showAurebesh ? 'font-aurebesh' : ''}`}
               onClick={() => onKeyPress(letter)}
               data-testid={`key-${letter.toLowerCase()}`}
             >
-              {letter}
+              {getCharacterDisplay(letter)}
             </Button>
           ))}
         </div>
@@ -34,11 +57,11 @@ export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
             <Button
               key={letter}
               variant="ghost"
-              className="virtual-keyboard-key"
+              className={`virtual-keyboard-key ${showAurebesh ? 'font-aurebesh' : ''}`}
               onClick={() => onKeyPress(letter)}
               data-testid={`key-${letter.toLowerCase()}`}
             >
-              {letter}
+              {getCharacterDisplay(letter)}
             </Button>
           ))}
         </div>
@@ -47,11 +70,11 @@ export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
             <Button
               key={letter}
               variant="ghost"
-              className="virtual-keyboard-key"
+              className={`virtual-keyboard-key ${showAurebesh ? 'font-aurebesh' : ''}`}
               onClick={() => onKeyPress(letter)}
               data-testid={`key-${letter.toLowerCase()}`}
             >
-              {letter}
+              {getCharacterDisplay(letter)}
             </Button>
           ))}
         </div>

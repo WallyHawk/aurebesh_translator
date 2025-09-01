@@ -1,3 +1,13 @@
+// Aurebesh character mappings
+export const aurebeshCharacters = {
+  'A': '\ue000', 'B': '\ue001', 'C': '\ue002', 'D': '\ue003', 'E': '\ue004',
+  'F': '\ue005', 'G': '\ue006', 'H': '\ue007', 'I': '\ue008', 'J': '\ue009',
+  'K': '\ue00a', 'L': '\ue00b', 'M': '\ue00c', 'N': '\ue00d', 'O': '\ue00e',
+  'P': '\ue00f', 'Q': '\ue017', 'R': '\ue019', 'S': '\ue01a', 'T': '\ue01b',
+  'U': '\ue01c', 'V': '\ue01d', 'W': '\ue01e', 'X': '\ue01f', 'Y': '\ue020',
+  'Z': '\ue021'
+};
+
 // Aurebesh ligature mappings
 export const ligatures = {
   "ch": "\ue011",
