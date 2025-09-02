@@ -26,7 +26,9 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
   }, [open]);
 
   const initializeGame = () => {
-    const words = (TIERS[2] as string[]).slice(0, 6); // Take first 6 words from tier 2
+    const tier2Words = TIERS[2] as string[];
+    const shuffledWords = [...tier2Words].sort(() => Math.random() - 0.5);
+    const words = shuffledWords.slice(0, 6); // Take random 6 words from tier 2
     const newGrid = generateWordSearch(words, 8);
     setGrid(newGrid);
     setSelectedCells([]);
@@ -136,37 +138,28 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-background border-border max-w-md max-h-[90vh] game-overlay">
-        <div className="h-full flex flex-col p-4">
+      <DialogContent className="bg-background border-border max-w-sm max-h-[80vh] game-overlay">
+        <div className="h-full flex flex-col p-2">
           {/* Game Header */}
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-card-foreground">Word Search</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              className="w-8 h-8 bg-primary text-primary-foreground rounded-full"
-              data-testid="button-close-word-search"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          <div className="flex justify-center items-center mb-3">
+            <h2 className="text-lg font-bold text-card-foreground">Word Search</h2>
           </div>
 
           {/* Instructions */}
-          <div className="bg-card p-3 rounded-lg mb-4 border border-border">
-            <p className="text-sm text-muted-foreground">
-              Find the hidden English words in the Aurebesh grid. Tap the first and last letter of each word.
+          <div className="bg-card p-2 rounded-lg mb-3 border border-border">
+            <p className="text-xs text-muted-foreground text-center">
+              Find the hidden English words. Tap first and last letter.
             </p>
           </div>
 
           {/* Word Search Grid */}
-          <div className="flex-1 flex items-center justify-center mb-4">
-            <div className="grid grid-cols-8 gap-1 p-4 bg-card rounded-lg border border-border">
+          <div className="flex items-center justify-center mb-2">
+            <div className="grid grid-cols-8 gap-px p-2 bg-card rounded-lg border border-border">
               {grid.cells.flat().map((cell, index) => (
                 <Button
                   key={index}
                   variant="ghost"
-                  className={`w-8 h-8 text-sm font-aurebesh border border-border rounded transition-colors ${
+                  className={`w-7 h-7 text-xs font-aurebesh border border-border rounded transition-colors ${
                     cell.isFound 
                       ? 'bg-green-500 text-white' 
                       : selectedCells.some(([x, y]) => x === cell.x && y === cell.y)
@@ -185,21 +178,22 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
           </div>
 
           {/* Words to Find */}
-          <div className="bg-card p-3 rounded-lg mb-4 border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Find these words:</h3>
+          <div className="bg-card p-2 rounded-lg mb-2 border border-border">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-xs font-medium text-muted-foreground">Find:</h3>
               <span className="text-xs text-muted-foreground">Hints: {3 - totalHintsUsed}/3</span>
             </div>
-            <div className="grid grid-cols-2 gap-1 text-sm">
+            <div className="grid grid-cols-3 gap-1 text-xs">
               {grid.wordsToFind.map((word) => (
                 <div key={word} className="flex items-center justify-between">
                   <span
-                    className={`text-xs ${
+                    className={`text-xs truncate block ${
                       grid.foundWords.includes(word) 
                         ? 'text-green-500 line-through' 
                         : 'text-card-foreground'
                     }`}
                     data-testid={`word-target-${word.toLowerCase()}`}
+                    title={word}
                   >
                     {word}
                   </span>
@@ -208,7 +202,7 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => useHint(word)}
-                      className="h-5 px-1 text-xs ml-1"
+                      className="h-4 w-4 px-0 text-xs shrink-0"
                       data-testid={`hint-${word.toLowerCase()}`}
                     >
                       💡
@@ -237,14 +231,24 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
             </div>
           ) : (
             /* Game Controls */
-            <Button
-              variant="ghost"
-              onClick={clearSelection}
-              className="bg-accent text-accent-foreground hover:opacity-90 w-full"
-              data-testid="button-clear-selection"
-            >
-              Clear Selection
-            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="ghost"
+                onClick={clearSelection}
+                className="bg-accent text-accent-foreground hover:opacity-90"
+                data-testid="button-clear-selection"
+              >
+                Clear
+              </Button>
+              <Button
+                onClick={restart}
+                className="bg-primary text-primary-foreground hover:opacity-90 flex items-center justify-center space-x-1"
+                data-testid="button-new-game-word-search"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>New</span>
+              </Button>
+            </div>
           )}
         </div>
       </DialogContent>

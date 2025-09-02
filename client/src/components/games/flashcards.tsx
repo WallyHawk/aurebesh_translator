@@ -122,22 +122,13 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
       <DialogContent className="bg-background border-border max-w-md max-h-[90vh] game-overlay">
         <div className="h-full flex flex-col p-4">
           {/* Game Header */}
-          <div className="flex justify-between items-center mb-4">
-            <div className="text-card-foreground">
+          <div className="flex justify-center items-center mb-4">
+            <div className="text-card-foreground text-center">
               <div className="text-sm opacity-75">
                 Tier {currentTier} - {tierNames[currentTier as keyof typeof tierNames]}
               </div>
               <div className="text-lg font-bold">Score: {score}/{gameCards.length}</div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              className="w-8 h-8 bg-primary text-primary-foreground rounded-full"
-              data-testid="button-close-flashcards"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
 
           {/* Progress Bar */}
