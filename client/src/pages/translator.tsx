@@ -14,17 +14,14 @@ import { AboutModal } from '@/components/modals/about';
 import { FlashcardsGame } from '@/components/games/flashcards';
 import { WordSearchGame } from '@/components/games/word-search';
 import { ImageUpload } from '@/components/image-upload';
-import { EnhancedText } from '@/components/enhanced-text';
-import { useLearningMode } from '@/hooks/use-learning-mode';
 import { audioManager } from '@/lib/audio';
-import { Copy, Clipboard, Trash2, Star, History, Bookmark, Gamepad2, Settings, Dices, GraduationCap } from 'lucide-react';
+import { Copy, Clipboard, Trash2, Star, History, Bookmark, Gamepad2, Settings, Dices } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function TranslatorPage() {
   const { englishText, aurebeshText, updateEnglish, updateAurebesh, clear } = useAurebesh();
   const { fontSize } = useTheme();
   const { toast } = useToast();
-  const { toggleLearningMode, isLearningModeEnabled } = useLearningMode();
   const addHistoryEntry = useAddHistoryEntry();
   const addSavedPhrase = useAddSavedPhrase();
 
@@ -108,15 +105,6 @@ export default function TranslatorPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleLearningMode}
-            className={`w-12 h-12 ${isLearningModeEnabled ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground hover:bg-accent'}`}
-            data-testid="button-learning-mode-header"
-          >
-            <GraduationCap className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
             onClick={() => setGamesOpen(true)}
             className="w-12 h-12 bg-primary text-primary-foreground hover:bg-accent"
             data-testid="button-games"
@@ -142,18 +130,13 @@ export default function TranslatorPage() {
           <Label className="block text-sm font-medium mb-2 text-muted-foreground">
             English Input
           </Label>
-          <div className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0" style={{ fontSize: `${fontSize}px`, padding: '10px', minHeight: '72px', display: 'flex', alignItems: 'center' }}>
-            {englishText ? (
-              <EnhancedText isAurebesh={false}>{englishText}</EnhancedText>
-            ) : (
-              <span className="text-muted-foreground">Type your English text here...</span>
-            )}
-          </div>
-          <textarea
+          <Textarea
             value={englishText}
             onChange={(e) => updateEnglish(e.target.value)}
-            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 sr-only"
+            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0"
+            placeholder="Type your English text here..."
             rows={3}
+            style={{ fontSize: `${fontSize}px`, padding: '10px' }}
             data-testid="input-english"
           />
         </div>
@@ -163,18 +146,13 @@ export default function TranslatorPage() {
           <Label className="block text-sm font-medium mb-2 text-muted-foreground">
             Aurebesh Translation
           </Label>
-          <div className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 font-aurebesh" style={{ fontSize: `${fontSize * 1.2}px`, padding: '10px', minHeight: '72px', display: 'flex', alignItems: 'center' }}>
-            {aurebeshText ? (
-              <EnhancedText isAurebesh={true}>{aurebeshText}</EnhancedText>
-            ) : (
-              <span className="text-muted-foreground">Aurebesh translation appears here...</span>
-            )}
-          </div>
-          <textarea
+          <Textarea
             value={aurebeshText}
             onChange={(e) => updateAurebesh(e.target.value)}
-            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 font-aurebesh sr-only"
+            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 font-aurebesh"
+            placeholder="Aurebesh translation appears here..."
             rows={3}
+            style={{ fontSize: `${fontSize * 1.2}px`, padding: '10px' }}
             data-testid="input-aurebesh"
           />
         </div>
