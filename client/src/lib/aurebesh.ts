@@ -1,23 +1,23 @@
 // Aurebesh character mappings
 export const aurebeshCharacters = {
-  'A': '\ue000', 'B': '\ue001', 'C': '\ue002', 'D': '\ue003', 'E': '\ue004',
-  'F': '\ue005', 'G': '\ue006', 'H': '\ue007', 'I': '\ue008', 'J': '\ue009',
-  'K': '\ue00a', 'L': '\ue00b', 'M': '\ue00c', 'N': '\ue00d', 'O': '\ue00e',
-  'P': '\ue00f', 'Q': '\ue017', 'R': '\ue019', 'S': '\ue01a', 'T': '\ue01b',
-  'U': '\ue01c', 'V': '\ue01d', 'W': '\ue01e', 'X': '\ue01f', 'Y': '\ue020',
-  'Z': '\ue021'
+  'A': '\uE000', 'B': '\uE001', 'C': '\uE002', 'D': '\uE003', 'E': '\uE004',
+  'F': '\uE005', 'G': '\uE006', 'H': '\uE007', 'I': '\uE008', 'J': '\uE009',
+  'K': '\uE00A', 'L': '\uE00B', 'M': '\uE00C', 'N': '\uE00D', 'O': '\uE00E',
+  'P': '\uE00F', 'Q': '\uE017', 'R': '\uE019', 'S': '\uE01A', 'T': '\uE01B',
+  'U': '\uE01C', 'V': '\uE01D', 'W': '\uE01E', 'X': '\uE01F', 'Y': '\uE020',
+  'Z': '\uE021'
 };
 
 // Aurebesh ligature mappings
 export const ligatures = {
-  "ch": "\ue011",
-  "sh": "\ue016", 
-  "th": "\ue018",
-  "ae": "\ue010",
-  "eo": "\ue012",
-  "kh": "\ue013",
-  "oo": "\ue015",
-  "ng": "\ue014"
+  "ch": "\uE011",
+  "sh": "\uE016", 
+  "th": "\uE018",
+  "ae": "\uE010",
+  "eo": "\uE012",
+  "kh": "\uE013",
+  "oo": "\uE015",
+  "ng": "\uE014"
 };
 
 export function englishToAurebesh(text: string): string {

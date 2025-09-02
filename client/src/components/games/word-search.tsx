@@ -15,7 +15,8 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
   const [grid, setGrid] = useState<WordSearchGrid | null>(null);
   const [selectedCells, setSelectedCells] = useState<Array<[number, number]>>([]);
   const [isSelecting, setIsSelecting] = useState(false);
-  const [hintsUsed, setHintsUsed] = useState<Record<string, number>>({});
+  const [totalHintsUsed, setTotalHintsUsed] = useState(0);
+  const [usedHintWords, setUsedHintWords] = useState<Set<string>>(new Set());
   const [flashingCell, setFlashingCell] = useState<[number, number] | null>(null);
 
   useEffect(() => {
@@ -30,7 +31,8 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
     setGrid(newGrid);
     setSelectedCells([]);
     setIsSelecting(false);
-    setHintsUsed({});
+    setTotalHintsUsed(0);
+    setUsedHintWords(new Set());
     setFlashingCell(null);
   };
 
@@ -107,11 +109,10 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
   const useHint = (word: string) => {
     if (!grid) return;
     
-    const currentHints = hintsUsed[word] || 0;
-    if (currentHints >= 3) return; // Max 3 hints per word
+    if (totalHintsUsed >= 3 || usedHintWords.has(word)) return; // Max 3 total hints, 1 per word
     
     // Find the word position in the grid
-    const wordPosition = grid.wordPositions.find(pos => pos.word === word);
+    const wordPosition = grid.wordPositions.find((pos: any) => pos.word === word);
     if (!wordPosition) return;
     
     // Get the first letter position
@@ -122,7 +123,8 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
     setTimeout(() => setFlashingCell(null), 1000);
     
     // Update hints used
-    setHintsUsed(prev => ({ ...prev, [word]: currentHints + 1 }));
+    setTotalHintsUsed(prev => prev + 1);
+    setUsedHintWords(prev => new Set(Array.from(prev).concat([word])));
     audioManager.play('success');
   };
 
@@ -184,12 +186,15 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
 
           {/* Words to Find */}
           <div className="bg-card p-3 rounded-lg mb-4 border border-border">
-            <h3 className="text-sm font-medium mb-2 text-muted-foreground">Find these words:</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-muted-foreground">Find these words:</h3>
+              <span className="text-xs text-muted-foreground">Hints: {3 - totalHintsUsed}/3</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 text-sm">
               {grid.wordsToFind.map((word) => (
                 <div key={word} className="flex items-center justify-between">
                   <span
-                    className={`${
+                    className={`text-xs ${
                       grid.foundWords.includes(word) 
                         ? 'text-green-500 line-through' 
                         : 'text-card-foreground'
@@ -198,16 +203,15 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
                   >
                     {word}
                   </span>
-                  {!grid.foundWords.includes(word) && (
+                  {!grid.foundWords.includes(word) && totalHintsUsed < 3 && !usedHintWords.has(word) && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => useHint(word)}
-                      disabled={(hintsUsed[word] || 0) >= 3}
-                      className="h-6 px-2 text-xs ml-2"
+                      className="h-5 px-1 text-xs ml-1"
                       data-testid={`hint-${word.toLowerCase()}`}
                     >
-                      💡 {3 - (hintsUsed[word] || 0)}
+                      💡
                     </Button>
                   )}
                 </div>

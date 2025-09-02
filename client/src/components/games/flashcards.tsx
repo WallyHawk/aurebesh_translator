@@ -208,25 +208,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
                 ))}
               </div>
 
-              {/* Game Controls */}
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="ghost"
-                  onClick={restart}
-                  className="bg-accent text-accent-foreground hover:opacity-90"
-                  data-testid="button-restart"
-                >
-                  Restart
-                </Button>
-                <Button
-                  onClick={nextTier}
-                  disabled={!gameProgress.unlockedTiers.includes(currentTier + 1) || currentTier >= 3}
-                  className="bg-primary text-primary-foreground hover:opacity-90"
-                  data-testid="button-next-tier-preview"
-                >
-                  Next Tier
-                </Button>
-              </div>
             </>
           )}
         </div>
