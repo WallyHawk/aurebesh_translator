@@ -16,8 +16,22 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("Rebel");
-  const [fontSize, setFontSizeState] = useState(20);
+  // Initialize from localStorage if available, fallback to defaults
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aurebesh-theme');
+      return (saved as Theme) || "Rebel";
+    }
+    return "Rebel";
+  });
+  
+  const [fontSize, setFontSizeState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('aurebesh-fontSize');
+      return saved ? parseInt(saved, 10) : 20;
+    }
+    return 20;
+  });
 
   const { data: settings } = useQuery<Settings>({
     queryKey: ['/api/settings'],
@@ -37,11 +51,24 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
+  // Apply theme immediately from localStorage on mount
+  useEffect(() => {
+    applyThemeToDOM(theme);
+  }, []);
+
+  // Sync with server settings when they load
   useEffect(() => {
     if (settings) {
-      setThemeState(settings.theme);
-      setFontSizeState(settings.fontSize);
-      applyThemeToDOM(settings.theme);
+      // Only update if server settings differ from local
+      if (settings.theme !== theme) {
+        setThemeState(settings.theme);
+        localStorage.setItem('aurebesh-theme', settings.theme);
+        applyThemeToDOM(settings.theme);
+      }
+      if (settings.fontSize !== fontSize) {
+        setFontSizeState(settings.fontSize);
+        localStorage.setItem('aurebesh-fontSize', settings.fontSize.toString());
+      }
     }
   }, [settings]);
 
@@ -65,11 +92,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
+    localStorage.setItem('aurebesh-theme', newTheme);
     applyThemeToDOM(newTheme);
   };
 
   const setFontSize = (size: number) => {
     setFontSizeState(size);
+    localStorage.setItem('aurebesh-fontSize', size.toString());
   };
 
   const applyTheme = () => {
