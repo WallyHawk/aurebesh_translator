@@ -14,14 +14,17 @@ import { AboutModal } from '@/components/modals/about';
 import { FlashcardsGame } from '@/components/games/flashcards';
 import { WordSearchGame } from '@/components/games/word-search';
 import { ImageUpload } from '@/components/image-upload';
+import { EnhancedText } from '@/components/enhanced-text';
+import { useLearningMode } from '@/hooks/use-learning-mode';
 import { audioManager } from '@/lib/audio';
-import { Copy, Clipboard, Trash2, Star, History, Bookmark, Gamepad2, Settings, Dices } from 'lucide-react';
+import { Copy, Clipboard, Trash2, Star, History, Bookmark, Gamepad2, Settings, Dices, GraduationCap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function TranslatorPage() {
   const { englishText, aurebeshText, updateEnglish, updateAurebesh, clear } = useAurebesh();
   const { fontSize } = useTheme();
   const { toast } = useToast();
+  const { toggleLearningMode, isLearningModeEnabled } = useLearningMode();
   const addHistoryEntry = useAddHistoryEntry();
   const addSavedPhrase = useAddSavedPhrase();
 
@@ -105,6 +108,15 @@ export default function TranslatorPage() {
           <Button
             variant="ghost"
             size="icon"
+            onClick={toggleLearningMode}
+            className={`w-12 h-12 ${isLearningModeEnabled ? 'bg-accent text-accent-foreground' : 'bg-primary text-primary-foreground hover:bg-accent'}`}
+            data-testid="button-learning-mode-header"
+          >
+            <GraduationCap className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setGamesOpen(true)}
             className="w-12 h-12 bg-primary text-primary-foreground hover:bg-accent"
             data-testid="button-games"
@@ -146,13 +158,18 @@ export default function TranslatorPage() {
           <Label className="block text-sm font-medium mb-2 text-muted-foreground">
             Aurebesh Translation
           </Label>
-          <Textarea
+          <div className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 font-aurebesh" style={{ fontSize: `${fontSize * 1.2}px`, padding: '10px', minHeight: '72px', display: 'flex', alignItems: 'center' }}>
+            {aurebeshText ? (
+              <EnhancedText isAurebesh={true}>{aurebeshText}</EnhancedText>
+            ) : (
+              <span className="text-muted-foreground">Aurebesh translation appears here...</span>
+            )}
+          </div>
+          <textarea
             value={aurebeshText}
             onChange={(e) => updateAurebesh(e.target.value)}
-            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 font-aurebesh"
-            placeholder="Aurebesh translation appears here..."
+            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 font-aurebesh sr-only"
             rows={3}
-            style={{ fontSize: `${fontSize * 1.2}px`, padding: '10px' }}
             data-testid="input-aurebesh"
           />
         </div>
@@ -215,6 +232,33 @@ export default function TranslatorPage() {
           >
             <Bookmark className="w-5 h-5 mb-1" />
             <span className="text-xs">Saved</span>
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={toggleLearningMode}
+            className={`flex flex-col items-center justify-center p-3 ${isLearningModeEnabled ? 'bg-primary text-primary-foreground' : 'bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground'} h-auto`}
+            data-testid="button-learning-mode"
+          >
+            <GraduationCap className="w-5 h-5 mb-1" />
+            <span className="text-xs">Learn</span>
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setSettingsOpen(true)}
+            className="flex flex-col items-center justify-center p-3 bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground h-auto"
+            data-testid="button-settings"
+          >
+            <Settings className="w-5 h-5 mb-1" />
+            <span className="text-xs">Settings</span>
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => setGamesOpen(true)}
+            className="flex flex-col items-center justify-center p-3 bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground h-auto"
+            data-testid="button-games"
+          >
+            <Gamepad2 className="w-5 h-5 mb-1" />
+            <span className="text-xs">Games</span>
           </Button>
         </div>
 
