@@ -1,14 +1,14 @@
-// Aurebesh character mappings
+// Aurebesh character mappings - using standard alphabet positions for this font
 export const aurebeshCharacters = {
-  'A': '\uE000', 'B': '\uE001', 'C': '\uE002', 'D': '\uE003', 'E': '\uE004',
-  'F': '\uE005', 'G': '\uE006', 'H': '\uE007', 'I': '\uE008', 'J': '\uE009',
-  'K': '\uE00A', 'L': '\uE00B', 'M': '\uE00C', 'N': '\uE00D', 'O': '\uE00E',
-  'P': '\uE00F', 'Q': '\uE017', 'R': '\uE019', 'S': '\uE01A', 'T': '\uE01B',
-  'U': '\uE01C', 'V': '\uE01D', 'W': '\uE01E', 'X': '\uE01F', 'Y': '\uE020',
-  'Z': '\uE021'
+  'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E',
+  'F': 'F', 'G': 'G', 'H': 'H', 'I': 'I', 'J': 'J',
+  'K': 'K', 'L': 'L', 'M': 'M', 'N': 'N', 'O': 'O',
+  'P': 'P', 'Q': 'Q', 'R': 'R', 'S': 'S', 'T': 'T',
+  'U': 'U', 'V': 'V', 'W': 'W', 'X': 'X', 'Y': 'Y',
+  'Z': 'Z'
 };
 
-// Aurebesh ligature mappings
+// Aurebesh ligature mappings - these work with the font
 export const ligatures = {
   "ch": "\uE011",
   "sh": "\uE016", 
