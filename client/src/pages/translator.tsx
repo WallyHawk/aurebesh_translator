@@ -142,13 +142,18 @@ export default function TranslatorPage() {
           <Label className="block text-sm font-medium mb-2 text-muted-foreground">
             English Input
           </Label>
-          <Textarea
+          <div className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0" style={{ fontSize: `${fontSize}px`, padding: '10px', minHeight: '72px', display: 'flex', alignItems: 'center' }}>
+            {englishText ? (
+              <EnhancedText isAurebesh={false}>{englishText}</EnhancedText>
+            ) : (
+              <span className="text-muted-foreground">Type your English text here...</span>
+            )}
+          </div>
+          <textarea
             value={englishText}
             onChange={(e) => updateEnglish(e.target.value)}
-            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0"
-            placeholder="Type your English text here..."
+            className="w-full bg-transparent text-card-foreground resize-none outline-none border-none focus:ring-0 sr-only"
             rows={3}
-            style={{ fontSize: `${fontSize}px`, padding: '10px' }}
             data-testid="input-english"
           />
         </div>
@@ -232,33 +237,6 @@ export default function TranslatorPage() {
           >
             <Bookmark className="w-5 h-5 mb-1" />
             <span className="text-xs">Saved</span>
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={toggleLearningMode}
-            className={`flex flex-col items-center justify-center p-3 ${isLearningModeEnabled ? 'bg-primary text-primary-foreground' : 'bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground'} h-auto`}
-            data-testid="button-learning-mode"
-          >
-            <GraduationCap className="w-5 h-5 mb-1" />
-            <span className="text-xs">Learn</span>
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setSettingsOpen(true)}
-            className="flex flex-col items-center justify-center p-3 bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground h-auto"
-            data-testid="button-settings"
-          >
-            <Settings className="w-5 h-5 mb-1" />
-            <span className="text-xs">Settings</span>
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() => setGamesOpen(true)}
-            className="flex flex-col items-center justify-center p-3 bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground h-auto"
-            data-testid="button-games"
-          >
-            <Gamepad2 className="w-5 h-5 mb-1" />
-            <span className="text-xs">Games</span>
           </Button>
         </div>
 
