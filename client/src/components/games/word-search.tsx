@@ -185,7 +185,18 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
             </div>
             <div className="grid grid-cols-3 gap-1 text-xs">
               {grid.wordsToFind.map((word) => (
-                <div key={word} className="flex items-center justify-between">
+                <div key={word} className="flex items-center">
+                  {!grid.foundWords.includes(word) && totalHintsUsed < 3 && !usedHintWords.has(word) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => useHint(word)}
+                      className="h-4 w-4 px-0 text-xs shrink-0 mr-1"
+                      data-testid={`hint-${word.toLowerCase()}`}
+                    >
+                      💡
+                    </Button>
+                  )}
                   <span
                     className={`text-xs truncate block ${
                       grid.foundWords.includes(word) 
@@ -197,17 +208,6 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
                   >
                     {word}
                   </span>
-                  {!grid.foundWords.includes(word) && totalHintsUsed < 3 && !usedHintWords.has(word) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => useHint(word)}
-                      className="h-4 w-4 px-0 text-xs shrink-0"
-                      data-testid={`hint-${word.toLowerCase()}`}
-                    >
-                      💡
-                    </Button>
-                  )}
                 </div>
               ))}
             </div>
