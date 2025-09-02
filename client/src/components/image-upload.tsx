@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Camera, Upload, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ocrService } from '@/lib/ocr';
 
 interface ImageUploadProps {
   onTextExtracted: (text: string) => void;
@@ -20,35 +21,38 @@ export function ImageUpload({ onTextExtracted }: ImageUploadProps) {
     setProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      // Simulate progress
+      // Initialize OCR service if needed
+      await ocrService.initialize();
+      
+      // Simulate progress while processing
       const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90));
-      }, 200);
+        setProgress(prev => Math.min(prev + 15, 85));
+      }, 300);
 
-      const response = await fetch('/api/ocr', {
-        method: 'POST',
-        body: formData,
-      });
-
+      // Process the image with OCR
+      const result = await ocrService.processImage(file);
+      
       clearInterval(progressInterval);
       setProgress(100);
 
-      if (!response.ok) {
-        throw new Error('OCR processing failed');
-      }
-
-      const result = await response.json();
-      
-      if (result.text && result.text !== "OCR functionality not yet implemented") {
+      if (result.translation && result.translation.trim()) {
+        // Use the translation result
+        onTextExtracted(result.translation);
+        toast({ 
+          title: "Text extracted successfully!", 
+          description: `Confidence: ${Math.round(result.confidence)}%`
+        });
+      } else if (result.text && result.text.trim()) {
+        // Fallback to raw OCR text if no translation
         onTextExtracted(result.text);
-        toast({ title: "Text extracted successfully!" });
+        toast({ 
+          title: "Text extracted", 
+          description: "Some characters may not have been recognized perfectly."
+        });
       } else {
         toast({ 
-          title: "OCR Feature Coming Soon", 
-          description: "Image translation will be available in a future update.",
+          title: "No text found", 
+          description: "Could not detect any text in the image. Try a clearer image with better lighting.",
           variant: "destructive" 
         });
       }
@@ -56,7 +60,7 @@ export function ImageUpload({ onTextExtracted }: ImageUploadProps) {
       console.error('OCR Error:', error);
       toast({ 
         title: "Processing failed", 
-        description: "Could not extract text from image.",
+        description: "Could not extract text from image. Please try again.",
         variant: "destructive" 
       });
     } finally {
