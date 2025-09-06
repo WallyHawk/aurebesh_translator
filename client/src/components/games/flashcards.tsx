@@ -138,7 +138,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
               variant="ghost"
               size="sm"
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="p-2 text-muted-foreground hover:text-card-foreground"
+              className="p-2 text-foreground hover:text-foreground hover:bg-accent"
               data-testid="button-toggle-sound"
             >
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
