@@ -54,7 +54,7 @@ export interface OCRResult {
 export async function analyzeAurebeshImage(base64Image: string, mimeType: string): Promise<OCRResult> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4o",
       messages: [
         {
           role: "system", 
