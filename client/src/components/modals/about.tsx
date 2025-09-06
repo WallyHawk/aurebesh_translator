@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Coffee } from 'lucide-react';
 
 interface AboutModalProps {
   open: boolean;
@@ -10,6 +10,10 @@ interface AboutModalProps {
 export function AboutModal({ open, onOpenChange }: AboutModalProps) {
   const handleVisitChannel = () => {
     window.open('https://www.youtube.com/@imperialremnantpodcast', '_blank');
+  };
+
+  const handleBuyMeCoffee = () => {
+    window.open('https://ko-fi.com/imperialremnant', '_blank');
   };
 
   return (
@@ -40,18 +44,29 @@ export function AboutModal({ open, onOpenChange }: AboutModalProps) {
           </div>
 
           <div>
-            <p className="text-muted-foreground mb-2">
+            <p className="text-muted-foreground mb-3">
               For more content, visit our YouTube channel:
             </p>
-            <Button
-              variant="ghost"
-              onClick={handleVisitChannel}
-              className="bg-primary text-primary-foreground hover:bg-accent flex items-center space-x-2"
-              data-testid="button-visit-channel"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>Imperial Remnant Podcast</span>
-            </Button>
+            <div className="space-y-2">
+              <Button
+                variant="ghost"
+                onClick={handleVisitChannel}
+                className="bg-primary text-primary-foreground hover:bg-accent flex items-center space-x-2 w-full"
+                data-testid="button-visit-channel"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Imperial Remnant Podcast</span>
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={handleBuyMeCoffee}
+                className="bg-orange-500 text-white hover:bg-orange-600 flex items-center space-x-2 w-full"
+                data-testid="button-buy-me-coffee"
+              >
+                <Coffee className="w-4 h-4" />
+                <span>Buy Me A Coffee</span>
+              </Button>
+            </div>
           </div>
 
           <div className="pt-4 border-t border-border space-y-2">
