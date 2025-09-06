@@ -5,14 +5,9 @@ import {
   insertHistoryEntrySchema, 
   insertSavedPhraseSchema,
   insertGameProgressSchema,
-  insertSettingsSchema,
-  ocrRequestSchema
+  insertSettingsSchema
 } from "@shared/schema";
 import { z } from "zod";
-import multer from "multer";
-import { analyzeAurebeshImage } from "./lib/openai-vision";
-
-const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -147,26 +142,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OCR route for image translation using OpenAI Vision
-  app.post("/api/ocr", upload.single('image'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No image file provided" });
-      }
-
-      // Convert buffer to base64 for processing
-      const base64Image = req.file.buffer.toString('base64');
-      const mimeType = req.file.mimetype;
-      
-      // Use OpenAI Vision to analyze Aurebesh text
-      const result = await analyzeAurebeshImage(base64Image, mimeType);
-      
-      res.json(result);
-    } catch (error) {
-      console.error('OCR processing error:', error);
-      res.status(500).json({ error: "OCR processing failed" });
-    }
-  });
 
   const httpServer = createServer(app);
   return httpServer;

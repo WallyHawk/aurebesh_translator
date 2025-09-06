@@ -13,7 +13,6 @@ import { GamesMenuModal } from '@/components/modals/games-menu';
 import { AboutModal } from '@/components/modals/about';
 import { FlashcardsGame } from '@/components/games/flashcards';
 import { WordSearchGame } from '@/components/games/word-search';
-import { ImageUpload } from '@/components/image-upload';
 import { audioManager } from '@/lib/audio';
 import { Copy, Clipboard, Trash2, Star, History, Bookmark, Gamepad2, Settings, Dices } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -157,8 +156,6 @@ export default function TranslatorPage() {
           />
         </div>
 
-        {/* Image Upload for OCR */}
-        <ImageUpload onTextExtracted={updateEnglish} />
 
         {/* Action Buttons */}
         <div className="grid grid-cols-3 gap-3">
