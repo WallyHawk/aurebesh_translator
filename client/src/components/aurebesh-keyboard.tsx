@@ -121,7 +121,7 @@ export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
               key={ligature}
               variant="ghost"
               className={`virtual-keyboard-key text-sm ${showAurebesh ? 'font-aurebesh' : ''}`}
-              onClick={() => onKeyPress(showAurebesh ? ligatures[ligature as keyof typeof ligatures] : ligature.toUpperCase())}
+              onClick={() => onKeyPress(ligature)}
               data-testid={`key-ligature-${ligature.toLowerCase()}`}
             >
               {showAurebesh ? ligatures[ligature as keyof typeof ligatures] : ligature.toUpperCase()}

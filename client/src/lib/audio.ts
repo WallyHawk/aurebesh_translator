@@ -9,17 +9,29 @@ class AudioManager {
     this.loadSound('success', '/sounds/ding.mp3'); // Game victories only
     this.loadSound('error', '/sounds/buzz.mp3');   // Game failures
     
-    // UI interaction sounds  
-    this.loadSound('click', '/sounds/click.mp3');       // Button clicks, keyboard presses
-    this.loadSound('notification', '/sounds/chime.wav'); // Saves, copies, general notifications
-    this.loadSound('whoosh', '/sounds/whoosh.wav');     // Theme changes, modal transitions
-    this.loadSound('type', '/sounds/type.mp3');         // Typing/translation sounds (optional)
+    // UI interaction sounds (temporarily using working .mp3 files)
+    this.loadSound('click', '/sounds/ding.mp3');        // Button clicks, keyboard presses  
+    this.loadSound('notification', '/sounds/ding.mp3'); // Saves, copies, general notifications
+    this.loadSound('whoosh', '/sounds/buzz.mp3');       // Theme changes, modal transitions
+    this.loadSound('type', '/sounds/ding.mp3');         // Typing/translation sounds (optional)
   }
 
   private loadSound(name: string, src: string) {
     try {
       const audio = new Audio(src);
       audio.preload = 'auto';
+      audio.volume = 0.5; // Set reasonable volume
+      
+      // Add error handling
+      audio.addEventListener('error', (e) => {
+        console.warn(`Failed to load sound: ${name}`, e);
+      });
+      
+      // Add load success logging
+      audio.addEventListener('canplaythrough', () => {
+        console.log(`Successfully loaded sound: ${name}`);
+      });
+      
       this.sounds.set(name, audio);
     } catch (error) {
       console.warn(`Failed to load sound: ${name}`, error);
@@ -32,9 +44,19 @@ class AudioManager {
     const sound = this.sounds.get(soundName);
     if (sound) {
       sound.currentTime = 0;
-      sound.play().catch(error => {
-        console.warn(`Failed to play sound: ${soundName}`, error);
-      });
+      const playPromise = sound.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log(`Successfully played sound: ${soundName}`);
+          })
+          .catch(error => {
+            console.warn(`Failed to play sound: ${soundName}`, error);
+          });
+      }
+    } else {
+      console.warn(`Sound not found: ${soundName}`);
     }
   }
 
