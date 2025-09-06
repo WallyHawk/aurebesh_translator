@@ -57,25 +57,24 @@ export async function analyzeAurebeshImage(base64Image: string, mimeType: string
       model: "gpt-5",
       messages: [
         {
-          role: "system",
-          content: `You are an expert at reading Aurebesh, the written script from Star Wars. Your job is to carefully examine images containing Aurebesh text and transcribe it character by character into English letters.
+          role: "system", 
+          content: `You are analyzing images that may contain Aurebesh text (the fictional script from Star Wars). 
 
-${AUREBESH_CHARACTER_GUIDE}
+TASK: Look at the image and describe any symbols, characters, or text-like elements you can see. Then try to identify them as Aurebesh characters if possible.
 
-INSTRUCTIONS:
-1. Look carefully at each character in the image
-2. Match each Aurebesh symbol to its English letter equivalent using the guide above
-3. Work from left to right, top to bottom
-4. If you see ligatures (CH, SH, TH, etc.), identify them as such
-5. Only transcribe what you can clearly see - don't guess
-6. Ignore any non-Aurebesh text or decorative elements
-7. Return your confidence level (0-100) based on image quality and clarity
+Aurebesh characters are angular, geometric symbols that represent English letters A-Z. They look like futuristic or alien writing - not curved like normal letters, but made of straight lines and geometric shapes.
+
+APPROACH:
+1. First, describe what visual elements you can see in the image
+2. Look for any text-like symbols or characters
+3. If you see geometric/angular symbols that could be Aurebesh, try to match them to English letters
+4. Be honest about what you can and cannot identify clearly
 
 Respond with JSON in this format:
 {
-  "text": "the transcribed English text",
-  "confidence": 85,
-  "details": "brief explanation of what you observed"
+  "text": "any English letters you identified",
+  "confidence": 50,
+  "details": "describe what symbols/text you see in the image and your analysis"
 }`
         },
         {
@@ -98,7 +97,11 @@ Respond with JSON in this format:
       response_format: { type: "json_object" }
     });
 
-    const result = JSON.parse(response.choices[0].message.content || '{"text":"","confidence":0}');
+    const rawResponse = response.choices[0].message.content || '{"text":"","confidence":0}';
+    console.log('AI Raw Response:', rawResponse);
+    
+    const result = JSON.parse(rawResponse);
+    console.log('Parsed result:', result);
     
     return {
       text: result.text || '',
