@@ -138,8 +138,8 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-background border-border max-w-sm max-h-[80vh] game-overlay">
-        <div className="h-full flex flex-col p-2">
+      <DialogContent className="bg-background border-border max-w-sm max-h-[90vh] w-[95vw] sm:w-auto game-overlay">
+        <div className="h-full flex flex-col p-3 overflow-hidden">
           {/* Game Header */}
           <div className="flex justify-center items-center mb-3">
             <h2 className="text-2xl font-bold text-foreground">Word Search</h2>
@@ -183,7 +183,7 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
               <h3 className="text-base font-semibold text-foreground">Find:</h3>
               <span className="text-sm font-medium text-foreground opacity-80">Hints: {3 - totalHintsUsed}/3</span>
             </div>
-            <div className="grid grid-cols-3 gap-1 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 text-xs">
               {grid.wordsToFind.map((word) => (
                 <div key={word} className="flex items-center">
                   {!grid.foundWords.includes(word) && totalHintsUsed < 3 && !usedHintWords.has(word) && (
@@ -191,7 +191,7 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => useHint(word)}
-                      className="h-4 w-4 px-0 text-xs shrink-0 mr-1"
+                      className="h-5 w-5 px-0 text-xs shrink-0 mr-1 min-w-5"
                       data-testid={`hint-${word.toLowerCase()}`}
                     >
                       💡
