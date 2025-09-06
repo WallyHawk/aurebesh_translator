@@ -2,9 +2,9 @@
 const CACHE_NAME = 'aurebesh-translator-v1';
 const STATIC_ASSETS = [
   '/',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
-  '/manifest.json'
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 // Install event - cache essential assets
