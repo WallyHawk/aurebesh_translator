@@ -10,6 +10,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
+import { analyzeAurebeshImage } from "./lib/openai-vision";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -146,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OCR route for image translation
+  // OCR route for image translation using OpenAI Vision
   app.post("/api/ocr", upload.single('image'), async (req, res) => {
     try {
       if (!req.file) {
@@ -155,16 +156,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Convert buffer to base64 for processing
       const base64Image = req.file.buffer.toString('base64');
+      const mimeType = req.file.mimetype;
       
-      // In a real implementation, you would use Tesseract.js here
-      // For now, return a placeholder response
-      const result = {
-        text: "OCR functionality not yet implemented",
-        confidence: 0
-      };
+      // Use OpenAI Vision to analyze Aurebesh text
+      const result = await analyzeAurebeshImage(base64Image, mimeType);
       
       res.json(result);
     } catch (error) {
+      console.error('OCR processing error:', error);
       res.status(500).json({ error: "OCR processing failed" });
     }
   });
