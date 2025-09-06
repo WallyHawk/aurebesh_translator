@@ -1,5 +1,5 @@
 // Star Wars Aurebesh Translator Service Worker
-const CACHE_NAME = 'aurebesh-translator-v1';
+const CACHE_NAME = 'aurebesh-translator-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
