@@ -11,8 +11,8 @@ class AudioManager {
     
     // UI interaction sounds  
     this.loadSound('click', '/sounds/click.mp3');       // Button clicks, keyboard presses
-    this.loadSound('notification', '/sounds/chime.mp3'); // Saves, copies, general notifications
-    this.loadSound('whoosh', '/sounds/whoosh.mp3');     // Theme changes, modal transitions
+    this.loadSound('notification', '/sounds/chime.wav'); // Saves, copies, general notifications
+    this.loadSound('whoosh', '/sounds/whoosh.wav');     // Theme changes, modal transitions
     this.loadSound('type', '/sounds/type.mp3');         // Typing/translation sounds (optional)
   }
 

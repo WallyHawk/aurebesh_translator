@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { useTheme } from '@/components/theme-provider';
+import { audioManager } from '@/lib/audio';
 
 interface SettingsModalProps {
   open: boolean;
@@ -53,7 +54,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       ? 'border-primary bg-accent' 
                       : 'border-border hover:border-primary'
                   }`}
-                  onClick={() => setTheme(themeOption.id as any)}
+                  onClick={() => {
+                    setTheme(themeOption.id as any);
+                    audioManager.play('whoosh');
+                  }}
                   data-testid={`theme-option-${themeOption.id.toLowerCase().replace(' ', '-')}`}
                 >
                   <div className="flex items-center space-x-3">
