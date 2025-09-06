@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { useTheme } from '@/components/theme-provider';
 import { audioManager } from '@/lib/audio';
+import { AboutModal } from './about';
 
 interface SettingsModalProps {
   open: boolean;
@@ -12,6 +14,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const { theme, fontSize, setTheme, setFontSize, applyTheme } = useTheme();
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   const themes = [
     { id: "Rebel", name: "Rebel Alliance", color: "hsl(15, 75%, 58%)" },
@@ -32,7 +35,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card text-card-foreground border-border max-w-md">
         <DialogHeader>
           <DialogTitle className="text-card-foreground">Settings</DialogTitle>
@@ -89,7 +93,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3 pt-4">
+          <div className="grid grid-cols-3 gap-3 pt-4">
             <Button
               variant="ghost"
               onClick={handleReset}
@@ -105,9 +109,23 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             >
               Apply
             </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                onOpenChange(false);
+                setTimeout(() => setAboutOpen(true), 100);
+              }}
+              className="bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              data-testid="button-about"
+            >
+              About
+            </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
+    
+    <AboutModal open={aboutOpen} onOpenChange={setAboutOpen} />
+    </>
   );
 }

@@ -54,10 +54,20 @@ export function AboutModal({ open, onOpenChange }: AboutModalProps) {
             </Button>
           </div>
 
-          <div className="pt-4 border-t border-border">
+          <div className="pt-4 border-t border-border space-y-2">
             <p className="text-xs text-muted-foreground">
-              <strong>Disclaimer:</strong> This is a fan-made app created for entertainment purposes only. 
-              It is not an official Star Wars product and is not affiliated with Lucasfilm, Disney, or any related entities.
+              <strong>Legal Disclaimer:</strong> This is a fan-made application created for entertainment and educational purposes only. 
+              It is not an official Star Wars product and is not affiliated with, endorsed by, or sponsored by Lucasfilm Ltd., 
+              The Walt Disney Company, or any related entities.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <strong>Trademarks:</strong> Star Wars, Aurebesh, and all related characters, names, marks, and logos are 
+              trademarks of Lucasfilm Ltd. All rights reserved. This application is made available under fair use for 
+              educational and entertainment purposes.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              <strong>Privacy:</strong> This app processes data locally in your browser. No personal information is 
+              collected or transmitted to external servers.
             </p>
           </div>
         </div>
