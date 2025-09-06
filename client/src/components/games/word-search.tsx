@@ -142,12 +142,12 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
         <div className="h-full flex flex-col p-2">
           {/* Game Header */}
           <div className="flex justify-center items-center mb-3">
-            <h2 className="text-lg font-bold text-card-foreground">Word Search</h2>
+            <h2 className="text-2xl font-bold text-foreground">Word Search</h2>
           </div>
 
           {/* Instructions */}
           <div className="bg-card p-2 rounded-lg mb-3 border border-border">
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-base font-medium text-foreground text-center opacity-80">
               Find the hidden English words. Tap first and last letter.
             </p>
           </div>
@@ -180,8 +180,8 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
           {/* Words to Find */}
           <div className="bg-card p-2 rounded-lg mb-2 border border-border">
             <div className="flex items-center justify-between mb-1">
-              <h3 className="text-xs font-medium text-muted-foreground">Find:</h3>
-              <span className="text-xs text-muted-foreground">Hints: {3 - totalHintsUsed}/3</span>
+              <h3 className="text-base font-semibold text-foreground">Find:</h3>
+              <span className="text-sm font-medium text-foreground opacity-80">Hints: {3 - totalHintsUsed}/3</span>
             </div>
             <div className="grid grid-cols-3 gap-1 text-xs">
               {grid.wordsToFind.map((word) => (
@@ -198,10 +198,10 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
                     </Button>
                   )}
                   <span
-                    className={`text-xs truncate block ${
+                    className={`text-sm font-medium truncate block ${
                       grid.foundWords.includes(word) 
                         ? 'text-green-500 line-through' 
-                        : 'text-card-foreground'
+                        : 'text-foreground'
                     }`}
                     data-testid={`word-target-${word.toLowerCase()}`}
                     title={word}

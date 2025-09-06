@@ -126,11 +126,11 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
           {/* Game Header */}
           <div className="flex justify-between items-start mb-4">
             <div className="text-foreground text-center flex-1">
-              <div className="text-sm text-foreground opacity-75">
+              <div className="text-base font-semibold text-foreground opacity-90">
                 Tier {currentTier} - {tierNames[currentTier as keyof typeof tierNames]}
               </div>
-              <div className="text-lg font-bold text-foreground">Score: {score}/{gameCards.length}</div>
-              <div className="text-sm text-foreground opacity-75">
+              <div className="text-xl font-bold text-foreground">Score: {score}/{gameCards.length}</div>
+              <div className="text-base font-semibold text-foreground opacity-90">
                 Progress: {currentCard + 1}/{gameCards.length}
               </div>
             </div>
@@ -154,7 +154,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
               <div className="text-6xl font-aurebesh mb-4 text-card-foreground" data-testid="text-flashcard-prompt">
                 {currentPrompt ? englishToAurebesh(currentPrompt) : ''}
               </div>
-              <div className="text-muted-foreground">What does this translate to?</div>
+              <div className="text-foreground text-lg font-medium opacity-80">What does this translate to?</div>
             </div>
           </div>
 
@@ -162,10 +162,10 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
             /* Game Complete */
             <div className="space-y-4">
               <div className="text-center">
-                <h3 className="text-xl font-bold text-card-foreground mb-2">Game Complete!</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-2">Game Complete!</h3>
                 <div className="space-y-2">
-                  <p className="text-muted-foreground">Final Score: {score}/{gameCards.length}</p>
-                  <p className="text-lg font-semibold">{Math.round((score / gameCards.length) * 100)}%</p>
+                  <p className="text-foreground text-lg font-medium">Final Score: {score}/{gameCards.length}</p>
+                  <p className="text-2xl font-bold text-foreground">{Math.round((score / gameCards.length) * 100)}%</p>
                   {(() => {
                     const percentage = (score / gameCards.length) * 100;
                     const requiredScore = Math.ceil(gameCards.length * 0.65);
