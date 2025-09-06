@@ -126,11 +126,11 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
           {/* Game Header */}
           <div className="flex justify-between items-start mb-4">
             <div className="text-foreground text-center flex-1">
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-foreground opacity-75">
                 Tier {currentTier} - {tierNames[currentTier as keyof typeof tierNames]}
               </div>
               <div className="text-lg font-bold text-foreground">Score: {score}/{gameCards.length}</div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-foreground opacity-75">
                 Progress: {currentCard + 1}/{gameCards.length}
               </div>
             </div>
