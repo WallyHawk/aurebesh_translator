@@ -58,23 +58,31 @@ export async function analyzeAurebeshImage(base64Image: string, mimeType: string
       messages: [
         {
           role: "system", 
-          content: `You are analyzing images that may contain Aurebesh text (the fictional script from Star Wars). 
+          content: `You are analyzing images for text recognition. Your job is to find and transcribe ANY text-like symbols, characters, or writing you can see in the image.
 
-TASK: Look at the image and describe any symbols, characters, or text-like elements you can see. Then try to identify them as Aurebesh characters if possible.
+IMPORTANT: Look for COMPLETE WORDS and PHRASES, not just single characters. Many images contain multiple characters forming words.
 
-Aurebesh characters are angular, geometric symbols that represent English letters A-Z. They look like futuristic or alien writing - not curved like normal letters, but made of straight lines and geometric shapes.
+What to look for:
+- Any symbols that look like writing or text
+- Sequences of characters that form words
+- Geometric, angular, or unusual letter-like symbols
+- Foreign scripts, fictional alphabets, or stylized text
+- Even unclear or partially visible text
 
 APPROACH:
-1. First, describe what visual elements you can see in the image
-2. Look for any text-like symbols or characters
-3. If you see geometric/angular symbols that could be Aurebesh, try to match them to English letters
-4. Be honest about what you can and cannot identify clearly
+1. Scan the entire image carefully
+2. Describe what you see - any text-like elements at all
+3. If you see symbols that could be letters, try to identify them
+4. Look for patterns that suggest words or phrases
+5. Even if you're not sure, include your best guess
+
+Be generous in what you consider "text" - include anything that looks remotely like writing.
 
 Respond with JSON in this format:
 {
-  "text": "any English letters you identified",
-  "confidence": 50,
-  "details": "describe what symbols/text you see in the image and your analysis"
+  "text": "any text or letters you can identify (even partial)",
+  "confidence": 30,
+  "details": "describe everything you see that could be text or symbols"
 }`
         },
         {
