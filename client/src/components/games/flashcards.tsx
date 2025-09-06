@@ -35,7 +35,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
 
   const startNewGame = (tier: number) => {
     const tierData = TIERS[tier as keyof typeof TIERS] || TIERS[1];
-    const shuffled = [...tierData].sort(() => Math.random() - 0.5).slice(0, 15);
+    const shuffled = [...tierData].sort(() => Math.random() - 0.5).slice(0, 25);
     setGameCards(shuffled);
     setCurrentCard(0);
     setScore(0);
@@ -79,7 +79,8 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
       } else {
         // Game finished
         const finalScore = correct ? score + 1 : score;
-        if (finalScore >= 25 && gameProgress) {
+        const requiredScore = Math.ceil(gameCards.length * 0.65); // 65% correct needed
+        if (finalScore >= requiredScore && gameProgress) {
           // Unlock next tier
           const newUnlockedTiers = [...gameProgress.unlockedTiers];
           if (!newUnlockedTiers.includes(currentTier + 1) && currentTier < 3) {
