@@ -3,9 +3,17 @@ class AudioManager {
   private enabled: boolean = true;
 
   constructor() {
-    // Initialize sound effects with user's custom sounds
-    this.loadSound('success', '/sounds/ding.mp3');
-    this.loadSound('error', '/sounds/buzz.mp3');
+    // Initialize sound effects - organized by usage type
+    
+    // Game-specific sounds (reserve success for game victories only)
+    this.loadSound('success', '/sounds/ding.mp3'); // Game victories only
+    this.loadSound('error', '/sounds/buzz.mp3');   // Game failures
+    
+    // UI interaction sounds  
+    this.loadSound('click', '/sounds/click.mp3');       // Button clicks, keyboard presses
+    this.loadSound('notification', '/sounds/chime.mp3'); // Saves, copies, general notifications
+    this.loadSound('whoosh', '/sounds/whoosh.mp3');     // Theme changes, modal transitions
+    this.loadSound('type', '/sounds/type.mp3');         // Typing/translation sounds (optional)
   }
 
   private loadSound(name: string, src: string) {

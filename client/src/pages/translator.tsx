@@ -55,7 +55,7 @@ export default function TranslatorPage() {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(aurebeshText);
-      audioManager.play('success');
+      audioManager.play('notification');
       toast({ title: "Copied to clipboard!" });
     } catch (error) {
       toast({ title: "Failed to copy", variant: "destructive" });
@@ -66,7 +66,7 @@ export default function TranslatorPage() {
     try {
       const text = await navigator.clipboard.readText();
       updateEnglish(text);
-      audioManager.play('success');
+      audioManager.play('notification');
     } catch (error) {
       toast({ title: "Failed to paste", variant: "destructive" });
     }
@@ -74,7 +74,7 @@ export default function TranslatorPage() {
 
   const handleClear = () => {
     clear();
-    audioManager.play('success');
+    audioManager.play('notification');
   };
 
   const handleSave = async () => {
@@ -84,7 +84,7 @@ export default function TranslatorPage() {
           phrase: `${englishText.trim()} = ${aurebeshText.trim()}`,
           timestamp: new Date().toISOString()
         });
-        audioManager.play('success');
+        audioManager.play('notification');
         toast({ title: "Phrase saved successfully!" });
       } catch (error) {
         audioManager.play('error');
