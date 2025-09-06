@@ -1,6 +1,3 @@
-import { createWorker } from 'tesseract.js';
-import { aurebeshToEnglish } from './aurebesh';
-
 export interface OCRResult {
   text: string;
   confidence: number;
@@ -8,60 +5,42 @@ export interface OCRResult {
 }
 
 class OCRService {
-  private worker: any = null;
-
-  async initialize() {
-    if (this.worker) return;
-    
-    this.worker = await createWorker();
-    await this.worker.loadLanguage('eng');
-    await this.worker.initialize('eng');
-    
-    // Configure for better Aurebesh recognition
-    await this.worker.setParameters({
-      tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ',
-      tessedit_pageseg_mode: '6', // Uniform block of text
-    });
-  }
-
   async processImage(imageFile: File): Promise<OCRResult> {
-    if (!this.worker) {
-      await this.initialize();
-    }
-
     try {
-      const { data } = await this.worker.recognize(imageFile);
-      
-      // Clean up the recognized text
-      let recognizedText = data.text
-        .replace(/[^A-Za-z\s]/g, '') // Remove non-letter characters
-        .replace(/\s+/g, ' ') // Normalize whitespace
-        .trim()
-        .toUpperCase();
+      // Create FormData to send the image to the server
+      const formData = new FormData();
+      formData.append('image', imageFile);
 
-      // Try to translate if we detected text
-      let translation = '';
-      if (recognizedText) {
-        // Since Tesseract might not perfectly recognize Aurebesh,
-        // we'll try our best to translate what we got
-        translation = aurebeshToEnglish(recognizedText);
+      // Send image to AI-powered OCR endpoint
+      const response = await fetch('/api/ocr', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
       }
 
+      const result = await response.json();
+      
       return {
-        text: recognizedText,
-        confidence: data.confidence,
-        translation: translation || recognizedText
+        text: result.text || '',
+        confidence: result.confidence || 0,
+        translation: result.translation || result.text || ''
       };
+      
     } catch (error) {
-      throw new Error(`OCR processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`AI OCR processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  // No longer needed with server-side processing
+  async initialize() {
+    // No-op for compatibility
   }
 
   async terminate() {
-    if (this.worker) {
-      await this.worker.terminate();
-      this.worker = null;
-    }
+    // No-op for compatibility
   }
 }
 
