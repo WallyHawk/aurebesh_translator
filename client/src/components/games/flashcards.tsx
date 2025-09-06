@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { useGameProgress, useUpdateGameProgress } from '@/hooks/use-storage';
 import { TIERS, englishToAurebesh } from '@/lib/aurebesh';
 import { audioManager } from '@/lib/audio';
-import { X, RotateCcw, ArrowRight } from 'lucide-react';
+import { X, RotateCcw, ArrowRight, Volume2, VolumeX } from 'lucide-react';
 
 interface FlashcardsGameProps {
   open: boolean;
@@ -23,6 +23,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
   const [gameCards, setGameCards] = useState<string[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
     if (open && gameProgress) {
@@ -66,9 +67,9 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
     const correct = answer === gameCards[currentCard];
     if (correct) {
       setScore(score + 1);
-      audioManager.play('success');
+      if (soundEnabled) audioManager.play('success');
     } else {
-      audioManager.play('error');
+      if (soundEnabled) audioManager.play('error');
     }
 
     setTimeout(() => {
@@ -123,16 +124,25 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
       <DialogContent className="bg-background border-border max-w-md max-h-[90vh] game-overlay">
         <div className="h-full flex flex-col p-4">
           {/* Game Header */}
-          <div className="flex justify-center items-center mb-4">
-            <div className="text-card-foreground text-center">
+          <div className="flex justify-between items-start mb-4">
+            <div className="text-card-foreground text-center flex-1">
               <div className="text-sm opacity-75">
                 Tier {currentTier} - {tierNames[currentTier as keyof typeof tierNames]}
               </div>
               <div className="text-lg font-bold">Score: {score}/{gameCards.length}</div>
               <div className="text-sm opacity-75">
-                Card {currentCard + 1}/{gameCards.length}
+                Progress: {currentCard + 1}/{gameCards.length}
               </div>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="p-2 text-muted-foreground hover:text-card-foreground"
+              data-testid="button-toggle-sound"
+            >
+              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </Button>
           </div>
 
           {/* Progress Bar */}
@@ -153,10 +163,26 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
             <div className="space-y-4">
               <div className="text-center">
                 <h3 className="text-xl font-bold text-card-foreground mb-2">Game Complete!</h3>
-                <p className="text-muted-foreground">Final Score: {score}/{gameCards.length}</p>
-                {score >= 25 && currentTier < 3 && gameProgress.unlockedTiers.includes(currentTier + 1) && (
-                  <p className="text-accent mt-2">Next tier unlocked!</p>
-                )}
+                <div className="space-y-2">
+                  <p className="text-muted-foreground">Final Score: {score}/{gameCards.length}</p>
+                  <p className="text-lg font-semibold">{Math.round((score / gameCards.length) * 100)}%</p>
+                  {(() => {
+                    const percentage = (score / gameCards.length) * 100;
+                    const requiredScore = Math.ceil(gameCards.length * 0.65);
+                    const passed = score >= requiredScore;
+                    return (
+                      <p className={`font-bold ${passed ? 'text-green-500' : 'text-red-500'}`}>
+                        {passed ? '✓ PASSED' : '✗ FAILED'} (Need 65% to unlock next tier)
+                      </p>
+                    );
+                  })()}
+                  {(() => {
+                    const requiredScore = Math.ceil(gameCards.length * 0.65);
+                    return score >= requiredScore && currentTier < 3 && gameProgress.unlockedTiers.includes(currentTier + 1) && (
+                      <p className="text-accent mt-2">🎉 Next tier unlocked!</p>
+                    );
+                  })()}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <Button
