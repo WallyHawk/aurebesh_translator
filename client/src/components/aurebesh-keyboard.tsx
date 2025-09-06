@@ -10,10 +10,11 @@ interface AurebeshKeyboardProps {
 
 export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
   const [showAurebesh, setShowAurebesh] = useState(false);
+  const numberRow = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
   const topRow = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'];
   const middleRow = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'];
   const bottomRow = ['Z', 'X', 'C', 'V', 'B', 'N', 'M'];
-  const ligatureKeys = Object.keys(ligatures).map(k => k.toUpperCase());
+  const ligatureKeys = Object.keys(ligatures);
   
   const getCharacterDisplay = (letter: string) => {
     if (showAurebesh && aurebeshCharacters[letter as keyof typeof aurebeshCharacters]) {
@@ -37,6 +38,21 @@ export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
         </div>
       </div>
       <div className="space-y-2">
+        {/* Number Row */}
+        <div className="grid grid-cols-10 gap-1">
+          {numberRow.map(number => (
+            <Button
+              key={number}
+              variant="ghost"
+              className="virtual-keyboard-key"
+              onClick={() => onKeyPress(number)}
+              data-testid={`key-${number}`}
+            >
+              {number}
+            </Button>
+          ))}
+        </div>
+        
         {/* Letter Rows */}
         <div className="grid grid-cols-10 gap-1">
           {topRow.map(letter => (
@@ -104,11 +120,11 @@ export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
             <Button
               key={ligature}
               variant="ghost"
-              className="virtual-keyboard-key text-sm"
-              onClick={() => onKeyPress(ligature)}
+              className={`virtual-keyboard-key text-sm ${showAurebesh ? 'font-aurebesh' : ''}`}
+              onClick={() => onKeyPress(showAurebesh ? ligatures[ligature as keyof typeof ligatures] : ligature.toUpperCase())}
               data-testid={`key-ligature-${ligature.toLowerCase()}`}
             >
-              {ligature}
+              {showAurebesh ? ligatures[ligature as keyof typeof ligatures] : ligature.toUpperCase()}
             </Button>
           ))}
         </div>
