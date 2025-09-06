@@ -35,7 +35,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
 
   const startNewGame = (tier: number) => {
     const tierData = TIERS[tier as keyof typeof TIERS] || TIERS[1];
-    const shuffled = [...tierData].sort(() => Math.random() - 0.5).slice(0, 10);
+    const shuffled = [...tierData].sort(() => Math.random() - 0.5).slice(0, 15);
     setGameCards(shuffled);
     setCurrentCard(0);
     setScore(0);
@@ -128,6 +128,9 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
                 Tier {currentTier} - {tierNames[currentTier as keyof typeof tierNames]}
               </div>
               <div className="text-lg font-bold">Score: {score}/{gameCards.length}</div>
+              <div className="text-sm opacity-75">
+                Card {currentCard + 1}/{gameCards.length}
+              </div>
             </div>
           </div>
 
