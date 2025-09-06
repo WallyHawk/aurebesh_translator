@@ -219,11 +219,12 @@ export default function TranslatorPage() {
         <AurebeshKeyboard 
           onKeyPress={(key) => {
             if (key === 'SPACE') {
-              updateAurebesh(aurebeshText + ' ');
+              updateEnglish(englishText + ' ');
             } else if (key === 'BACK') {
-              updateAurebesh(aurebeshText.slice(0, -1));
+              updateEnglish(englishText.slice(0, -1));
             } else {
-              updateAurebesh(aurebeshText + key);
+              // Add to English text and let the translation engine handle ligatures
+              updateEnglish(englishText + key.toLowerCase());
             }
           }}
         />
