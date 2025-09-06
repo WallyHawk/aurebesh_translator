@@ -10,10 +10,10 @@ class AudioManager {
     this.loadSound('error', '/sounds/buzz.mp3');   // Game failures
     
     // UI interaction sounds (temporarily using working .mp3 files)
-    this.loadSound('click', '/sounds/ding.mp3');        // Button clicks, keyboard presses  
-    this.loadSound('notification', '/sounds/ding.mp3'); // Saves, copies, general notifications
+    this.loadSound('click', '/sounds/buzz.mp3');        // Button clicks, keyboard presses  
+    this.loadSound('notification', '/sounds/buzz.mp3'); // Saves, copies, general notifications
     this.loadSound('whoosh', '/sounds/buzz.mp3');       // Theme changes, modal transitions
-    this.loadSound('type', '/sounds/ding.mp3');         // Typing/translation sounds (optional)
+    this.loadSound('type', '/sounds/buzz.mp3');         // Typing/translation sounds (optional)
   }
 
   private loadSound(name: string, src: string) {
