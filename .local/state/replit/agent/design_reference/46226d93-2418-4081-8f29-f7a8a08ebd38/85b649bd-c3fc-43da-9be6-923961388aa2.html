@@ -1,0 +1,803 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurebesh Translator - Star Wars Language Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)", 
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                }
+            }
+        }
+    };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --radius: 0.5rem;
+            
+            /* Imperial Theme (Default) */
+            --background: hsl(210 11% 15%);
+            --foreground: hsl(210 40% 98%);
+            --card: hsl(210 11% 18%);
+            --card-foreground: hsl(210 40% 95%);
+            --popover: hsl(210 11% 18%);
+            --popover-foreground: hsl(210 40% 95%);
+            --primary: hsl(0 72% 45%);
+            --primary-foreground: hsl(0 0% 98%);
+            --secondary: hsl(210 11% 25%);
+            --secondary-foreground: hsl(210 40% 90%);
+            --muted: hsl(210 11% 22%);
+            --muted-foreground: hsl(210 40% 65%);
+            --accent: hsl(14 91% 55%);
+            --accent-foreground: hsl(0 0% 98%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(0 0% 98%);
+            --border: hsl(210 11% 25%);
+            --input: hsl(210 11% 22%);
+            --ring: hsl(0 72% 45%);
+        }
+        
+        [data-theme="rebel"] {
+            --background: hsl(210 40% 12%);
+            --foreground: hsl(210 40% 98%);
+            --card: hsl(210 40% 15%);
+            --card-foreground: hsl(210 40% 95%);
+            --primary: hsl(212 92% 45%);
+            --primary-foreground: hsl(0 0% 98%);
+            --secondary: hsl(210 40% 20%);
+            --secondary-foreground: hsl(210 40% 90%);
+            --accent: hsl(25 95% 53%);
+            --accent-foreground: hsl(0 0% 98%);
+            --border: hsl(210 40% 20%);
+            --input: hsl(210 40% 18%);
+            --ring: hsl(212 92% 45%);
+        }
+        
+        [data-theme="jedi"] {
+            --background: hsl(195 25% 8%);
+            --foreground: hsl(180 30% 95%);
+            --card: hsl(195 25% 12%);
+            --card-foreground: hsl(180 30% 92%);
+            --primary: hsl(180 85% 35%);
+            --primary-foreground: hsl(0 0% 98%);
+            --secondary: hsl(195 25% 18%);
+            --secondary-foreground: hsl(180 30% 88%);
+            --accent: hsl(43 96% 56%);
+            --accent-foreground: hsl(0 0% 10%);
+            --border: hsl(195 25% 18%);
+            --input: hsl(195 25% 15%);
+            --ring: hsl(180 85% 35%);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--foreground);
+        }
+        
+        .aurebesh-font {
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 0.1em;
+        }
+        
+        .glow-effect {
+            box-shadow: 0 0 20px var(--primary);
+        }
+        
+        .loading-spinner {
+            border: 3px solid var(--muted);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .drag-drop-zone {
+            border: 2px dashed var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .drag-drop-zone:hover {
+            border-color: var(--primary);
+            background-color: var(--muted);
+        }
+        
+        .star-bg {
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, var(--foreground), transparent),
+                radial-gradient(2px 2px at 40px 70px, var(--foreground), transparent),
+                radial-gradient(1px 1px at 90px 40px, var(--foreground), transparent),
+                radial-gradient(1px 1px at 130px 80px, var(--foreground), transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            opacity: 0.1;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background star-bg">
+    <!-- @COMPONENT: Header [navigation and theme selector] -->
+    <header class="bg-card border-b border-border">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="text-primary text-2xl">
+                        <i class="fas fa-galactic-republic"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold aurebesh-font">AUREBESH TRANSLATOR</h1>
+                        <p class="text-sm text-muted-foreground">Master the Language of the Galaxy</p>
+                    </div>
+                </div>
+                
+                <!-- Theme Selector -->
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-muted-foreground hidden sm:block">Theme:</span>
+                    <select id="themeSelector" class="bg-input border border-border rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                        <option value="imperial">Imperial</option>
+                        <option value="rebel">Rebel Alliance</option>
+                        <option value="jedi">Jedi Order</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: Navigation [main app navigation] -->
+    <nav class="bg-card border-b border-border sticky top-0 z-10">
+        <div class="container mx-auto px-4">
+            <div class="flex space-x-1 overflow-x-auto">
+                <button class="nav-tab active px-4 py-3 text-sm font-medium border-b-2 border-primary text-primary whitespace-nowrap" data-tab="translate">
+                    <i class="fas fa-language mr-2"></i>Translate
+                </button>
+                <button class="nav-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground whitespace-nowrap" data-tab="ocr">
+                    <i class="fas fa-camera mr-2"></i>OCR Scan
+                </button>
+                <button class="nav-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground whitespace-nowrap" data-tab="flashcards">
+                    <i class="fas fa-clone mr-2"></i>Flash Cards
+                </button>
+                <button class="nav-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-muted-foreground hover:text-foreground whitespace-nowrap" data-tab="wordfind">
+                    <i class="fas fa-puzzle-piece mr-2"></i>Word Find
+                </button>
+            </div>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: Navigation -->
+
+    <main class="container mx-auto px-4 py-6 space-y-6">
+        
+        <!-- @COMPONENT: TranslateTab [main translation interface] -->
+        <div id="translate-tab" class="tab-content">
+            <div class="grid lg:grid-cols-2 gap-6">
+                <!-- Input Section -->
+                <div class="space-y-4">
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold">Input Text</h2>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-muted-foreground">From:</span>
+                                <select class="bg-input border border-border rounded px-2 py-1 text-sm">
+                                    <option>English</option>
+                                    <option>Aurebesh</option>
+                                </select>
+                            </div>
+                        </div>
+                        <textarea 
+                            placeholder="Enter text to translate..." 
+                            class="w-full h-32 bg-input border border-border rounded-lg p-3 text-foreground placeholder-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                            data-bind="inputText"
+                        >May the Force be with you</textarea>
+                        <div class="flex items-center justify-between mt-3">
+                            <span class="text-sm text-muted-foreground" data-bind="inputCharCount">24 characters</span>
+                            <div class="flex space-x-2">
+                                <button class="text-sm text-primary hover:text-primary/80" data-event="click:clearInput">
+                                    <i class="fas fa-trash mr-1"></i>Clear
+                                </button>
+                                <button class="text-sm text-primary hover:text-primary/80" data-event="click:swapLanguages">
+                                    <i class="fas fa-exchange-alt mr-1"></i>Swap
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Output Section -->
+                <div class="space-y-4">
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold">Translation</h2>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-muted-foreground">To:</span>
+                                <select class="bg-input border border-border rounded px-2 py-1 text-sm">
+                                    <option>Aurebesh</option>
+                                    <option>English</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="w-full h-32 bg-muted rounded-lg p-3 border border-border">
+                            <div class="aurebesh-font text-xl text-accent leading-relaxed" data-bind="translatedText">
+                                ᴍᴀᵞ ᴛʜᴇ ꜰᴏʀᴄᴇ ʙᴇ ᴡɪᴛʜ ᵞᴏᵘ
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-3">
+                            <span class="text-sm text-muted-foreground">Aurebesh Script</span>
+                            <div class="flex space-x-2">
+                                <button class="text-sm text-primary hover:text-primary/80" data-event="click:copyTranslation">
+                                    <i class="fas fa-copy mr-1"></i>Copy
+                                </button>
+                                <button class="text-sm text-primary hover:text-primary/80" data-event="click:speakTranslation">
+                                    <i class="fas fa-volume-up mr-1"></i>Speak
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-card rounded-lg border border-border p-6">
+                <h3 class="text-lg font-semibold mb-4">Quick Translations</h3>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <!-- @MAP: quickPhrases.map(phrase => ( -->
+                    <button class="bg-secondary hover:bg-secondary/80 rounded-lg p-3 text-left transition-colors" data-event="click:loadQuickPhrase">
+                        <div class="font-medium text-sm">Hello there</div>
+                        <div class="text-xs text-muted-foreground aurebesh-font">ʜᴇʟʟᴏ ᴛʜᴇʀᴇ</div>
+                    </button>
+                    <button class="bg-secondary hover:bg-secondary/80 rounded-lg p-3 text-left transition-colors" data-event="click:loadQuickPhrase">
+                        <div class="font-medium text-sm">I am a Jedi</div>
+                        <div class="text-xs text-muted-foreground aurebesh-font">ɪ ᴀᴍ ᴀ ᴊᴇᴅɪ</div>
+                    </button>
+                    <button class="bg-secondary hover:bg-secondary/80 rounded-lg p-3 text-left transition-colors" data-event="click:loadQuickPhrase">
+                        <div class="font-medium text-sm">This is the way</div>
+                        <div class="text-xs text-muted-foreground aurebesh-font">ᴛʜɪs ɪs ᴛʜᴇ ᴡᴀᵞ</div>
+                    </button>
+                    <button class="bg-secondary hover:bg-secondary/80 rounded-lg p-3 text-left transition-colors" data-event="click:loadQuickPhrase">
+                        <div class="font-medium text-sm">Good luck</div>
+                        <div class="text-xs text-muted-foreground aurebesh-font">ɢᴏᴏᴅ ʟᵘᴄᴋ</div>
+                    </button>
+                    <!-- @END_MAP -->
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: TranslateTab -->
+
+        <!-- @COMPONENT: OCRTab [image recognition interface] -->
+        <div id="ocr-tab" class="tab-content hidden">
+            <div class="grid lg:grid-cols-2 gap-6">
+                <!-- Upload Section -->
+                <div class="space-y-4">
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <h2 class="text-lg font-semibold mb-4">Upload Aurebesh Image</h2>
+                        
+                        <!-- Drag & Drop Zone -->
+                        <div class="drag-drop-zone rounded-lg p-8 text-center bg-muted/50">
+                            <div class="text-4xl text-muted-foreground mb-4">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <p class="text-lg font-medium mb-2">Drop your image here</p>
+                            <p class="text-sm text-muted-foreground mb-4">or click to browse files</p>
+                            <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                                <i class="fas fa-folder-open mr-2"></i>Choose File
+                            </button>
+                            <input type="file" class="hidden" accept="image/*" data-implementation="File upload handler needed">
+                        </div>
+
+                        <!-- Camera Options -->
+                        <div class="flex space-x-3 mt-4">
+                            <button class="flex-1 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 transition-colors" data-event="click:openCamera">
+                                <i class="fas fa-camera mr-2"></i>Take Photo
+                            </button>
+                            <button class="flex-1 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80 transition-colors" data-event="click:pasteImage">
+                                <i class="fas fa-paste mr-2"></i>Paste Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div class="bg-card rounded-lg border border-border p-6" data-state="hasImage">
+                        <h3 class="text-lg font-semibold mb-4">Image Preview</h3>
+                        <!-- A sample image showing Aurebesh text carved in stone -->
+                        <img src="https://pixabay.com/get/g540b8f0f0238514ac4748f52a4b69f72564a2c8b8f725e3e1497fbbb1f1acaaef913b075a2459882db2279ac7d50e717021ab9e3a5b02755a22d69ec6120681e_1280.jpg" alt="Sample Aurebesh text for OCR processing" class="w-full h-48 object-cover rounded-lg border border-border" data-mock-image="true" data-implementation="Replace with uploaded image preview">
+                        <div class="flex justify-between items-center mt-3">
+                            <span class="text-sm text-muted-foreground">aurebesh_text.jpg • 245 KB</span>
+                            <button class="text-sm text-destructive hover:text-destructive/80" data-event="click:removeImage">
+                                <i class="fas fa-trash mr-1"></i>Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OCR Results -->
+                <div class="space-y-4">
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold">OCR Results</h2>
+                            <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50" data-event="click:processOCR" data-state="isProcessing">
+                                <div class="loading-spinner mr-2 hidden" data-state="loading"></div>
+                                <i class="fas fa-search mr-2" data-state="ready"></i>
+                                <span data-state="ready">Process Image</span>
+                                <span data-state="loading" class="hidden">Processing...</span>
+                            </button>
+                        </div>
+
+                        <!-- Detected Text -->
+                        <div class="bg-muted rounded-lg p-4 mb-4">
+                            <h4 class="font-medium mb-2">Detected Aurebesh Text:</h4>
+                            <div class="aurebesh-font text-xl text-accent" data-bind="detectedAurebesh">
+                                ᴊᴇᴅɪ ᴋɴɪɢʜᴛ
+                            </div>
+                        </div>
+
+                        <!-- Translation -->
+                        <div class="bg-muted rounded-lg p-4">
+                            <h4 class="font-medium mb-2">English Translation:</h4>
+                            <div class="text-lg" data-bind="ocrTranslation">
+                                JEDI KNIGHT
+                            </div>
+                        </div>
+
+                        <!-- Confidence Score -->
+                        <div class="mt-4">
+                            <div class="flex items-center justify-between text-sm mb-1">
+                                <span>OCR Confidence</span>
+                                <span data-bind="confidenceScore">89%</span>
+                            </div>
+                            <div class="w-full bg-secondary rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 89%" data-bind="confidenceBar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OCR Tips -->
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <h3 class="text-lg font-semibold mb-3">OCR Tips</h3>
+                        <ul class="space-y-2 text-sm text-muted-foreground">
+                            <li class="flex items-start">
+                                <i class="fas fa-lightbulb text-accent mr-2 mt-0.5"></i>
+                                Use clear, high-contrast images for best results
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-lightbulb text-accent mr-2 mt-0.5"></i>
+                                Ensure Aurebesh text is horizontal and well-lit
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-lightbulb text-accent mr-2 mt-0.5"></i>
+                                Avoid blurry or rotated text when possible
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: OCRTab -->
+
+        <!-- @COMPONENT: FlashCardsTab [learning game interface] -->
+        <div id="flashcards-tab" class="tab-content hidden">
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Game Controls -->
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <h2 class="text-lg font-semibold mb-4">Game Settings</h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Difficulty</label>
+                                <select class="w-full bg-input border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring">
+                                    <option>Beginner (A-H)</option>
+                                    <option>Intermediate (I-P)</option>
+                                    <option>Advanced (Q-Z)</option>
+                                    <option>Master (All)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Cards per Session</label>
+                                <select class="w-full bg-input border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring">
+                                    <option>10 Cards</option>
+                                    <option>20 Cards</option>
+                                    <option>50 Cards</option>
+                                    <option>All Cards</option>
+                                </select>
+                            </div>
+
+                            <button class="w-full bg-primary text-primary-foreground px-4 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium" data-event="click:startFlashCards">
+                                <i class="fas fa-play mr-2"></i>Start Learning
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <h3 class="text-lg font-semibold mb-4">Your Progress</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-sm">Cards Mastered</span>
+                                <span class="font-medium text-primary" data-bind="masteredCards">12/26</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm">Best Streak</span>
+                                <span class="font-medium text-accent" data-bind="bestStreak">8</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm">Total Study Time</span>
+                                <span class="font-medium" data-bind="studyTime">2h 34m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flash Card Display -->
+                <div class="lg:col-span-2">
+                    <div class="bg-card rounded-lg border border-border p-8">
+                        <div class="text-center">
+                            <!-- Progress Indicator -->
+                            <div class="mb-6">
+                                <div class="flex justify-between text-sm text-muted-foreground mb-2">
+                                    <span>Card <span data-bind="currentCard">5</span> of <span data-bind="totalCards">10</span></span>
+                                    <span>Streak: <span data-bind="currentStreak" class="text-accent">3</span></span>
+                                </div>
+                                <div class="w-full bg-secondary rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 50%" data-bind="progressBar"></div>
+                                </div>
+                            </div>
+
+                            <!-- Flash Card -->
+                            <div class="flashcard-container mb-8">
+                                <div class="bg-muted rounded-xl p-12 border-2 border-border transition-all duration-300 hover:border-primary cursor-pointer glow-effect" data-event="click:flipCard">
+                                    <div class="flashcard-front" data-state="showingFront">
+                                        <div class="text-6xl aurebesh-font text-accent mb-4" data-bind="aurebeshCharacter">
+                                            ᴀ
+                                        </div>
+                                        <p class="text-sm text-muted-foreground">Click to reveal English letter</p>
+                                    </div>
+                                    <div class="flashcard-back hidden" data-state="showingBack">
+                                        <div class="text-6xl font-bold text-primary mb-4" data-bind="englishLetter">
+                                            A
+                                        </div>
+                                        <p class="text-sm text-muted-foreground">Aurebesh character for 'A'</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Answer Buttons -->
+                            <div class="flex space-x-4 justify-center" data-state="answering">
+                                <button class="bg-destructive text-destructive-foreground px-8 py-3 rounded-lg hover:bg-destructive/90 transition-colors font-medium" data-event="click:markIncorrect">
+                                    <i class="fas fa-times mr-2"></i>Don't Know
+                                </button>
+                                <button class="bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-colors font-medium" data-event="click:markCorrect">
+                                    <i class="fas fa-check mr-2"></i>I Know This
+                                </button>
+                            </div>
+
+                            <!-- Session Complete -->
+                            <div class="session-complete hidden" data-state="sessionComplete">
+                                <div class="text-center">
+                                    <div class="text-4xl text-accent mb-4">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-bold mb-2">Session Complete!</h3>
+                                    <p class="text-muted-foreground mb-6">You've mastered <span class="text-primary font-medium" data-bind="sessionScore">7/10</span> cards this session.</p>
+                                    <div class="flex space-x-4 justify-center">
+                                        <button class="bg-secondary text-secondary-foreground px-6 py-2 rounded-lg hover:bg-secondary/80 transition-colors" data-event="click:reviewMissed">
+                                            Review Missed
+                                        </button>
+                                        <button class="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors" data-event="click:newSession">
+                                            New Session
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: FlashCardsTab -->
+
+        <!-- @COMPONENT: WordFindTab [puzzle game interface] -->
+        <div id="wordfind-tab" class="tab-content hidden">
+            <div class="grid lg:grid-cols-4 gap-6">
+                <!-- Game Grid -->
+                <div class="lg:col-span-3">
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-lg font-semibold">Aurebesh Word Find</h2>
+                            <div class="flex items-center space-x-4">
+                                <div class="text-sm">
+                                    <span class="text-muted-foreground">Time:</span>
+                                    <span class="font-mono font-medium" data-bind="gameTimer">02:34</span>
+                                </div>
+                                <button class="bg-secondary text-secondary-foreground px-3 py-1 rounded text-sm hover:bg-secondary/80" data-event="click:resetGame">
+                                    <i class="fas fa-redo mr-1"></i>Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Word Search Grid -->
+                        <div class="game-grid">
+                            <div class="grid grid-cols-12 gap-1 p-4 bg-muted rounded-lg">
+                                <!-- @MAP: gameGrid.map((row, rowIndex) => row.map((cell, colIndex) => ( -->
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm" data-event="click:selectCell" data-cell="0,0">
+                                    ᴀ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm" data-event="click:selectCell" data-cell="0,1">
+                                    ʙ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm" data-event="click:selectCell" data-cell="0,2">
+                                    ᴄ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm" data-event="click:selectCell" data-cell="0,3">
+                                    ᴅ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm selected bg-primary text-primary-foreground" data-event="click:selectCell" data-cell="0,4">
+                                    ꜰ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm selected bg-primary text-primary-foreground" data-event="click:selectCell" data-cell="0,5">
+                                    ᴏ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm selected bg-primary text-primary-foreground" data-event="click:selectCell" data-cell="0,6">
+                                    ʀ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm selected bg-primary text-primary-foreground" data-event="click:selectCell" data-cell="0,7">
+                                    ᴄ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm selected bg-primary text-primary-foreground" data-event="click:selectCell" data-cell="0,8">
+                                    ᴇ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm" data-event="click:selectCell" data-cell="0,9">
+                                    ɢ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm" data-event="click:selectCell" data-cell="0,10">
+                                    ʜ
+                                </div>
+                                <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors aurebesh-font text-sm" data-event="click:selectCell" data-cell="0,11">
+                                    ɪ
+                                </div>
+                                <!-- More grid cells would continue here in actual implementation -->
+                                <!-- @END_MAP -->
+                                
+                                <!-- Simplified grid representation for mockup - in real implementation this would be generated dynamically -->
+                                <!-- Additional rows would be generated here -->
+                                
+                                <div class="col-span-12 grid grid-cols-12 gap-1">
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ʲ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴇ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴅ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ɪ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴋ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ʟ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴍ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ɴ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴏ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴘ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ǫ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ʀ</div>
+                                </div>
+                                
+                                <!-- Continue with more rows for a complete 12x12 grid -->
+                                <div class="col-span-12 grid grid-cols-12 gap-1">
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">s</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴛ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᵘ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴠ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴡ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ˣ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᵞ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴢ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴀ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ʙ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴄ</div>
+                                    <div class="w-8 h-8 bg-background border border-border rounded flex items-center justify-center aurebesh-font text-sm">ᴅ</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Info -->
+                <div class="space-y-4">
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <h3 class="text-lg font-semibold mb-4">Find These Words</h3>
+                        <div class="space-y-2">
+                            <!-- @MAP: wordsToFind.map(word => ( -->
+                            <div class="flex items-center justify-between p-2 bg-muted rounded">
+                                <span class="aurebesh-font text-sm">ꜰᴏʀᴄᴇ</span>
+                                <span class="text-xs text-primary">FORCE</span>
+                                <i class="fas fa-check text-primary"></i>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-secondary rounded">
+                                <span class="aurebesh-font text-sm">ʲᴇᴅɪ</span>
+                                <span class="text-xs">JEDI</span>
+                                <div class="w-4 h-4"></div>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-secondary rounded">
+                                <span class="aurebesh-font text-sm">sɪᴛʜ</span>
+                                <span class="text-xs">SITH</span>
+                                <div class="w-4 h-4"></div>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-secondary rounded">
+                                <span class="aurebesh-font text-sm">ʀᴇʙᴇʟ</span>
+                                <span class="text-xs">REBEL</span>
+                                <div class="w-4 h-4"></div>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-secondary rounded">
+                                <span class="aurebesh-font text-sm">ᴇᴍᴘɪʀᴇ</span>
+                                <span class="text-xs">EMPIRE</span>
+                                <div class="w-4 h-4"></div>
+                            </div>
+                            <!-- @END_MAP -->
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <h3 class="text-lg font-semibold mb-4">Game Stats</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-sm">Words Found</span>
+                                <span class="font-medium text-primary" data-bind="wordsFound">1/5</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm">Best Time</span>
+                                <span class="font-medium text-accent" data-bind="bestTime">01:23</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm">Games Played</span>
+                                <span class="font-medium" data-bind="gamesPlayed">12</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg border border-border p-6">
+                        <h3 class="text-lg font-semibold mb-3">How to Play</h3>
+                        <ul class="space-y-2 text-sm text-muted-foreground">
+                            <li class="flex items-start">
+                                <i class="fas fa-mouse-pointer text-accent mr-2 mt-0.5"></i>
+                                Click and drag to select words
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-search text-accent mr-2 mt-0.5"></i>
+                                Find words in any direction
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-clock text-accent mr-2 mt-0.5"></i>
+                                Beat your best time
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: WordFindTab -->
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-card border-t border-border mt-12">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center text-sm text-muted-foreground">
+                <p>Made with ❤️ for Star Wars fans • May the Force be with you</p>
+                <p class="mt-1">© 2024 Aurebesh Translator</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (() => {
+            // Theme switching functionality
+            const themeSelector = document.getElementById('themeSelector');
+            const body = document.body;
+            
+            themeSelector.addEventListener('change', (e) => {
+                body.setAttribute('data-theme', e.target.value);
+                // TODO: Save theme preference to localStorage
+            });
+
+            // Tab switching functionality
+            const navTabs = document.querySelectorAll('.nav-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    navTabs.forEach(t => {
+                        t.classList.remove('active', 'border-primary', 'text-primary');
+                        t.classList.add('border-transparent', 'text-muted-foreground');
+                    });
+                    tab.classList.add('active', 'border-primary', 'text-primary');
+                    tab.classList.remove('border-transparent', 'text-muted-foreground');
+                    
+                    // Show target content
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.getElementById(`${targetTab}-tab`).classList.remove('hidden');
+                });
+            });
+
+            // Placeholder interactions for demo
+            document.addEventListener('click', (e) => {
+                const element = e.target.closest('[data-event]');
+                if (element) {
+                    const event = element.getAttribute('data-event');
+                    console.log(`Event triggered: ${event}`);
+                    // TODO: Implement actual event handlers
+                    
+                    // Demo flash card flip
+                    if (event === 'click:flipCard') {
+                        const front = element.querySelector('.flashcard-front');
+                        const back = element.querySelector('.flashcard-back');
+                        if (front && back) {
+                            front.classList.toggle('hidden');
+                            back.classList.toggle('hidden');
+                        }
+                    }
+                }
+            });
+
+            // Demo timer for word find game
+            let gameTime = 154; // 2:34 in seconds
+            const timerElement = document.querySelector('[data-bind="gameTimer"]');
+            if (timerElement) {
+                setInterval(() => {
+                    gameTime++;
+                    const minutes = Math.floor(gameTime / 60);
+                    const seconds = gameTime % 60;
+                    timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+        })();
+    </script>
+</body>
+</html>

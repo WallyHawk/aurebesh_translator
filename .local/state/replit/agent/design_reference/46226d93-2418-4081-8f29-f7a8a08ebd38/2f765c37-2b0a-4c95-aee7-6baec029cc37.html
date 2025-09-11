@@ -1,0 +1,642 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurebesh Translator - Star Wars Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                },
+                fontFamily: {
+                    'star-wars': ['VT323', 'monospace'],
+                    'aurebesh': ['Aurebesh', 'monospace'],
+                }
+            },
+        },
+    };
+    </script>
+    <style>
+        :root {
+            --radius: 8px;
+            
+            /* Rebel Theme */
+            --background: hsl(45 40% 94%);
+            --foreground: hsl(210 10% 5%);
+            --card: hsl(200 10% 23%);
+            --card-foreground: hsl(45 40% 94%);
+            --popover: hsl(200 10% 23%);
+            --popover-foreground: hsl(45 40% 94%);
+            --primary: hsl(15 75% 58%);
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(200 10% 23%);
+            --secondary-foreground: hsl(45 40% 94%);
+            --muted: hsl(200 10% 23%);
+            --muted-foreground: hsl(45 40% 94%);
+            --accent: hsl(15 85% 50%);
+            --accent-foreground: hsl(0 0% 100%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --border: hsl(200 10% 30%);
+            --input: hsl(200 10% 23%);
+            --ring: hsl(15 75% 58%);
+        }
+
+        .theme-imperial {
+            --background: hsl(200 10% 23%);
+            --foreground: hsl(0 50% 40%);
+            --card: hsl(210 10% 5%);
+            --card-foreground: hsl(45 40% 94%);
+            --primary: hsl(0 50% 40%);
+            --primary-foreground: hsl(0 0% 100%);
+            --accent: hsl(0 70% 55%);
+            --accent-foreground: hsl(0 0% 100%);
+            --muted: hsl(210 10% 5%);
+            --muted-foreground: hsl(45 40% 94%);
+        }
+
+        .theme-light {
+            --background: hsl(35 20% 65%);
+            --foreground: hsl(205 100% 75%);
+            --card: hsl(200 10% 23%);
+            --card-foreground: hsl(40 30% 75%);
+            --primary: hsl(205 100% 75%);
+            --primary-foreground: hsl(0 0% 0%);
+            --accent: hsl(140 100% 75%);
+            --accent-foreground: hsl(0 0% 0%);
+        }
+
+        .theme-dark {
+            --background: hsl(0 0% 14%);
+            --foreground: hsl(0 100% 50%);
+            --card: hsl(0 0% 0%);
+            --card-foreground: hsl(45 40% 94%);
+            --primary: hsl(0 100% 50%);
+            --primary-foreground: hsl(0 0% 100%);
+            --accent: hsl(0 0% 87%);
+            --accent-foreground: hsl(0 0% 0%);
+        }
+
+        .theme-bounty {
+            --background: hsl(25 15% 60%);
+            --foreground: hsl(340 75% 97%);
+            --card: hsl(285 60% 5%);
+            --card-foreground: hsl(0 0% 67%);
+            --primary: hsl(80 20% 50%);
+            --primary-foreground: hsl(0 0% 100%);
+            --accent: hsl(80 20% 50%);
+            --accent-foreground: hsl(0 0% 100%);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=VT323:wght@400&display=swap');
+        
+        .font-aurebesh {
+            font-family: 'Courier New', monospace; /* Fallback for Aurebesh */
+        }
+
+        .virtual-keyboard-key {
+            @apply bg-card text-card-foreground border border-border rounded-md h-12 flex items-center justify-center text-lg font-bold transition-all duration-150 active:scale-95 hover:bg-accent hover:text-accent-foreground;
+        }
+
+        .translation-panel {
+            @apply bg-card text-card-foreground rounded-lg p-4 min-h-[120px] border border-border focus-within:ring-2 focus-within:ring-ring transition-all;
+        }
+
+        .game-overlay {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+        }
+
+        .flashcard {
+            background: linear-gradient(135deg, var(--card), var(--muted));
+            border: 2px solid var(--border);
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-background text-foreground font-star-wars">
+    <!-- @COMPONENT: App Container -->
+    <div class="min-h-screen flex flex-col">
+        <!-- @COMPONENT: Header -->
+        <header class="flex justify-between items-center p-4 bg-card border-b border-border">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-jedi text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-card-foreground">Aurebesh Translator</h1>
+            </div>
+            <div class="flex space-x-2">
+                <!-- Games Button -->
+                <button id="gamesBtn" class="w-12 h-12 bg-primary text-primary-foreground rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
+                    <i class="fas fa-gamepad text-lg"></i>
+                </button>
+                <!-- Settings Button -->
+                <button id="settingsBtn" class="w-12 h-12 bg-primary text-primary-foreground rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- @COMPONENT: Main Translation Interface -->
+        <main class="flex-1 p-4 space-y-4">
+            <!-- English Input -->
+            <div class="translation-panel">
+                <label class="block text-sm font-medium mb-2 text-muted-foreground">English Input</label>
+                <textarea 
+                    id="englishInput" 
+                    class="w-full bg-transparent text-card-foreground resize-none outline-none text-lg"
+                    placeholder="Type your English text here..."
+                    rows="3"
+                    data-bind="englishText"
+                >May the Force be with you</textarea>
+            </div>
+
+            <!-- Aurebesh Output -->
+            <div class="translation-panel">
+                <label class="block text-sm font-medium mb-2 text-muted-foreground">Aurebesh Translation</label>
+                <textarea 
+                    id="aurebeshOutput" 
+                    class="w-full bg-transparent text-card-foreground resize-none outline-none text-2xl font-aurebesh"
+                    placeholder="Aurebesh translation appears here..."
+                    rows="3"
+                    readonly
+                    data-bind="aurebeshText"
+                >MAY ᚦE FORCE BE WIᚦ YOU</textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-3 gap-3">
+                <button class="flex flex-col items-center justify-center p-3 bg-card text-card-foreground rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors" data-event="click:copyText">
+                    <i class="fas fa-copy text-xl mb-1"></i>
+                    <span class="text-xs">Copy</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-3 bg-card text-card-foreground rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors" data-event="click:pasteText">
+                    <i class="fas fa-paste text-xl mb-1"></i>
+                    <span class="text-xs">Paste</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-3 bg-card text-card-foreground rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors" data-event="click:clearText">
+                    <i class="fas fa-times text-xl mb-1"></i>
+                    <span class="text-xs">Clear</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-3 bg-card text-card-foreground rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors" data-event="click:savePhrase">
+                    <i class="fas fa-star text-xl mb-1"></i>
+                    <span class="text-xs">Save</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-3 bg-card text-card-foreground rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors" data-event="click:showHistory">
+                    <i class="fas fa-history text-xl mb-1"></i>
+                    <span class="text-xs">History</span>
+                </button>
+                <button class="flex flex-col items-center justify-center p-3 bg-card text-card-foreground rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors" data-event="click:showSaved">
+                    <i class="fas fa-bookmark text-xl mb-1"></i>
+                    <span class="text-xs">Saved</span>
+                </button>
+            </div>
+
+            <!-- Virtual Aurebesh Keyboard -->
+            <div class="bg-card rounded-lg p-4 border border-border">
+                <h3 class="text-sm font-medium mb-3 text-muted-foreground">Aurebesh Keyboard</h3>
+                <div class="space-y-2">
+                    <!-- Letter Rows -->
+                    <div class="grid grid-cols-10 gap-1">
+                        <!-- @MAP: ['Q','W','E','R','T','Y','U','I','O','P'].map(letter => ( -->
+                        <button class="virtual-keyboard-key" data-key="Q">Q</button>
+                        <button class="virtual-keyboard-key" data-key="W">W</button>
+                        <button class="virtual-keyboard-key" data-key="E">E</button>
+                        <button class="virtual-keyboard-key" data-key="R">R</button>
+                        <button class="virtual-keyboard-key" data-key="T">T</button>
+                        <button class="virtual-keyboard-key" data-key="Y">Y</button>
+                        <button class="virtual-keyboard-key" data-key="U">U</button>
+                        <button class="virtual-keyboard-key" data-key="I">I</button>
+                        <button class="virtual-keyboard-key" data-key="O">O</button>
+                        <button class="virtual-keyboard-key" data-key="P">P</button>
+                        <!-- @END_MAP )) -->
+                    </div>
+                    <div class="grid grid-cols-9 gap-1 px-5">
+                        <!-- @MAP: ['A','S','D','F','G','H','J','K','L'].map(letter => ( -->
+                        <button class="virtual-keyboard-key" data-key="A">A</button>
+                        <button class="virtual-keyboard-key" data-key="S">S</button>
+                        <button class="virtual-keyboard-key" data-key="D">D</button>
+                        <button class="virtual-keyboard-key" data-key="F">F</button>
+                        <button class="virtual-keyboard-key" data-key="G">G</button>
+                        <button class="virtual-keyboard-key" data-key="H">H</button>
+                        <button class="virtual-keyboard-key" data-key="J">J</button>
+                        <button class="virtual-keyboard-key" data-key="K">K</button>
+                        <button class="virtual-keyboard-key" data-key="L">L</button>
+                        <!-- @END_MAP )) -->
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 px-10">
+                        <!-- @MAP: ['Z','X','C','V','B','N','M'].map(letter => ( -->
+                        <button class="virtual-keyboard-key" data-key="Z">Z</button>
+                        <button class="virtual-keyboard-key" data-key="X">X</button>
+                        <button class="virtual-keyboard-key" data-key="C">C</button>
+                        <button class="virtual-keyboard-key" data-key="V">V</button>
+                        <button class="virtual-keyboard-key" data-key="B">B</button>
+                        <button class="virtual-keyboard-key" data-key="N">N</button>
+                        <button class="virtual-keyboard-key" data-key="M">M</button>
+                        <!-- @END_MAP )) -->
+                    </div>
+                    <!-- Function Keys -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="virtual-keyboard-key col-span-2" data-key="SPACE">Space</button>
+                        <button class="virtual-keyboard-key" data-key="BACK">⌫</button>
+                    </div>
+                    <!-- Ligature Keys -->
+                    <div class="grid grid-cols-4 gap-1">
+                        <button class="virtual-keyboard-key text-sm" data-key="CH">CH</button>
+                        <button class="virtual-keyboard-key text-sm" data-key="SH">SH</button>
+                        <button class="virtual-keyboard-key text-sm" data-key="TH">TH</button>
+                        <button class="virtual-keyboard-key text-sm" data-key="NG">NG</button>
+                        <button class="virtual-keyboard-key text-sm" data-key="AE">AE</button>
+                        <button class="virtual-keyboard-key text-sm" data-key="EO">EO</button>
+                        <button class="virtual-keyboard-key text-sm" data-key="KH">KH</button>
+                        <button class="virtual-keyboard-key text-sm" data-key="OO">OO</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- @COMPONENT: Settings Overlay -->
+        <div id="settingsOverlay" class="fixed inset-0 game-overlay hidden z-50 flex items-center justify-center p-4">
+            <div class="bg-card rounded-lg w-full max-w-md p-6 border border-border">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-card-foreground">Settings</h2>
+                    <button id="closeSettings" class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- Theme Selection -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-3 text-muted-foreground">Theme</label>
+                        <div class="grid grid-cols-1 gap-2" data-implementation="Theme switching controls">
+                            <button class="theme-option p-3 rounded-lg border-2 border-primary bg-card text-card-foreground" data-theme="rebel">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-4 h-4 rounded-full" style="background-color: hsl(15 75% 58%)"></div>
+                                    <span>Rebel Alliance</span>
+                                </div>
+                            </button>
+                            <button class="theme-option p-3 rounded-lg border border-border bg-card text-card-foreground hover:border-primary" data-theme="imperial">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-4 h-4 rounded-full" style="background-color: hsl(0 50% 40%)"></div>
+                                    <span>Galactic Empire</span>
+                                </div>
+                            </button>
+                            <button class="theme-option p-3 rounded-lg border border-border bg-card text-card-foreground hover:border-primary" data-theme="light">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-4 h-4 rounded-full" style="background-color: hsl(205 100% 75%)"></div>
+                                    <span>Light Side</span>
+                                </div>
+                            </button>
+                            <button class="theme-option p-3 rounded-lg border border-border bg-card text-card-foreground hover:border-primary" data-theme="dark">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-4 h-4 rounded-full" style="background-color: hsl(0 100% 50%)"></div>
+                                    <span>Dark Side</span>
+                                </div>
+                            </button>
+                            <button class="theme-option p-3 rounded-lg border border-border bg-card text-card-foreground hover:border-primary" data-theme="bounty">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-4 h-4 rounded-full" style="background-color: hsl(80 20% 50%)"></div>
+                                    <span>Bounty Hunter</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Font Size -->
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-muted-foreground">Font Size</label>
+                        <input type="range" min="16" max="32" value="20" class="w-full accent-primary" data-bind="fontSize">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-2 gap-3 pt-4">
+                        <button class="bg-accent text-accent-foreground py-2 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity" data-event="click:resetDefaults">
+                            Reset Defaults
+                        </button>
+                        <button class="bg-primary text-primary-foreground py-2 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity" data-event="click:applySettings">
+                            Apply
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- @COMPONENT: Games Selection Overlay -->
+        <div id="gamesOverlay" class="fixed inset-0 game-overlay hidden z-50 flex items-center justify-center p-4">
+            <div class="bg-card rounded-lg w-full max-w-md p-6 border border-border">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-card-foreground">Training Games</h2>
+                    <button id="closeGames" class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-3">
+                    <button id="flashcardsBtn" class="w-full p-4 bg-primary text-primary-foreground rounded-lg flex items-center space-x-3 hover:bg-accent transition-colors">
+                        <i class="fas fa-brain text-xl"></i>
+                        <div class="text-left">
+                            <div class="font-medium">Flashcards</div>
+                            <div class="text-sm opacity-90">Test your Aurebesh knowledge</div>
+                        </div>
+                    </button>
+                    <button id="wordSearchBtn" class="w-full p-4 bg-primary text-primary-foreground rounded-lg flex items-center space-x-3 hover:bg-accent transition-colors">
+                        <i class="fas fa-search text-xl"></i>
+                        <div class="text-left">
+                            <div class="font-medium">Word Search</div>
+                            <div class="text-sm opacity-90">Find hidden Star Wars terms</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- @COMPONENT: Flashcards Game Overlay -->
+        <div id="flashcardsGame" class="fixed inset-0 game-overlay hidden z-50 p-4">
+            <div class="h-full flex flex-col">
+                <!-- Game Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="text-card-foreground">
+                        <div class="text-sm opacity-75">Tier 1 - Letters & Ligatures</div>
+                        <div class="text-lg font-bold" data-bind="score">Score: 8/10</div>
+                    </div>
+                    <button id="closeFlashcards" class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-muted rounded-full h-2 mb-6">
+                    <div class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 80%" data-bind="progress"></div>
+                </div>
+
+                <!-- Flashcard -->
+                <div class="flashcard rounded-xl p-8 mb-6 flex-1 flex items-center justify-center">
+                    <div class="text-center">
+                        <div class="text-6xl font-aurebesh mb-4 text-card-foreground" data-bind="aurebeshPrompt">TH</div>
+                        <div class="text-muted-foreground">What does this translate to?</div>
+                    </div>
+                </div>
+
+                <!-- Answer Options -->
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <!-- @MAP: answerOptions.map(option => ( -->
+                    <button class="bg-card text-card-foreground p-4 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors answer-btn" data-answer="TH">
+                        TH
+                    </button>
+                    <button class="bg-card text-card-foreground p-4 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors answer-btn" data-answer="SH">
+                        SH
+                    </button>
+                    <button class="bg-card text-card-foreground p-4 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors answer-btn" data-answer="CH">
+                        CH
+                    </button>
+                    <button class="bg-card text-card-foreground p-4 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors answer-btn" data-answer="NG">
+                        NG
+                    </button>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- Game Controls -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button class="bg-accent text-accent-foreground py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity" data-event="click:restartGame">
+                        Restart
+                    </button>
+                    <button class="bg-primary text-primary-foreground py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity" data-event="click:nextTier">
+                        Next Tier
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- @COMPONENT: Word Search Game Overlay -->
+        <div id="wordSearchGame" class="fixed inset-0 game-overlay hidden z-50 p-4">
+            <div class="h-full flex flex-col">
+                <!-- Game Header -->
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-card-foreground">Word Search</h2>
+                    <button id="closeWordSearch" class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Instructions -->
+                <div class="bg-card p-3 rounded-lg mb-4 border border-border">
+                    <p class="text-sm text-muted-foreground">Find the hidden English words in the Aurebesh grid. Tap the first and last letter of each word.</p>
+                </div>
+
+                <!-- Word Search Grid -->
+                <div class="flex-1 flex items-center justify-center mb-4">
+                    <div class="grid grid-cols-8 gap-1 p-4 bg-card rounded-lg border border-border" data-implementation="Dynamic word search grid generation">
+                        <!-- @MAP: Array.from({length: 64}).map((_, i) => ( -->
+                        <button class="w-8 h-8 bg-muted text-muted-foreground text-sm font-aurebesh border border-border rounded hover:bg-accent hover:text-accent-foreground transition-colors grid-cell" data-pos="0,0">
+                            M
+                        </button>
+                        <button class="w-8 h-8 bg-muted text-muted-foreground text-sm font-aurebesh border border-border rounded hover:bg-accent hover:text-accent-foreground transition-colors grid-cell" data-pos="1,0">
+                            A
+                        </button>
+                        <button class="w-8 h-8 bg-muted text-muted-foreground text-sm font-aurebesh border border-border rounded hover:bg-accent hover:text-accent-foreground transition-colors grid-cell" data-pos="2,0">
+                            Y
+                        </button>
+                        <button class="w-8 h-8 bg-green-500 text-white text-sm font-aurebesh border border-border rounded grid-cell" data-pos="3,0">
+                            F
+                        </button>
+                        <button class="w-8 h-8 bg-muted text-muted-foreground text-sm font-aurebesh border border-border rounded hover:bg-accent hover:text-accent-foreground transition-colors grid-cell" data-pos="4,0">
+                            X
+                        </button>
+                        <button class="w-8 h-8 bg-muted text-muted-foreground text-sm font-aurebesh border border-border rounded hover:bg-accent hover:text-accent-foreground transition-colors grid-cell" data-pos="5,0">
+                            K
+                        </button>
+                        <button class="w-8 h-8 bg-muted text-muted-foreground text-sm font-aurebesh border border-border rounded hover:bg-accent hover:text-accent-foreground transition-colors grid-cell" data-pos="6,0">
+                            L
+                        </button>
+                        <button class="w-8 h-8 bg-muted text-muted-foreground text-sm font-aurebesh border border-border rounded hover:bg-accent hover:text-accent-foreground transition-colors grid-cell" data-pos="7,0">
+                            P
+                        </button>
+                        <!-- Continue pattern for remaining cells... -->
+                        <!-- @END_MAP )) -->
+                        <!-- For brevity, showing just first row. Real implementation would generate full 8x8 grid -->
+                    </div>
+                </div>
+
+                <!-- Words to Find -->
+                <div class="bg-card p-3 rounded-lg mb-4 border border-border">
+                    <h3 class="text-sm font-medium mb-2 text-muted-foreground">Find these words:</h3>
+                    <div class="grid grid-cols-3 gap-2 text-sm">
+                        <span class="text-green-500 line-through">FORCE</span>
+                        <span class="text-card-foreground">JEDI</span>
+                        <span class="text-card-foreground">SABER</span>
+                        <span class="text-card-foreground">REBEL</span>
+                        <span class="text-card-foreground">EMPIRE</span>
+                        <span class="text-card-foreground">GALAXY</span>
+                    </div>
+                </div>
+
+                <!-- Game Controls -->
+                <button class="bg-accent text-accent-foreground py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-opacity w-full" data-event="click:clearSelection">
+                    Clear Selection
+                </button>
+            </div>
+        </div>
+
+        <!-- @COMPONENT: History/Saved Overlays (Similar structure to settings) -->
+        <!-- These would follow the same pattern as settings overlay -->
+    </div>
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        (function() {
+            // Theme switching functionality
+            const themes = {
+                rebel: '',
+                imperial: 'theme-imperial',
+                light: 'theme-light',
+                dark: 'theme-dark',
+                bounty: 'theme-bounty'
+            };
+
+            let currentTheme = 'rebel';
+
+            // Modal controls
+            function showOverlay(overlayId) {
+                document.getElementById(overlayId).classList.remove('hidden');
+            }
+
+            function hideOverlay(overlayId) {
+                document.getElementById(overlayId).classList.add('hidden');
+            }
+
+            // Event listeners
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                showOverlay('settingsOverlay');
+            });
+
+            document.getElementById('closeSettings').addEventListener('click', () => {
+                hideOverlay('settingsOverlay');
+            });
+
+            document.getElementById('gamesBtn').addEventListener('click', () => {
+                showOverlay('gamesOverlay');
+            });
+
+            document.getElementById('closeGames').addEventListener('click', () => {
+                hideOverlay('gamesOverlay');
+            });
+
+            document.getElementById('flashcardsBtn').addEventListener('click', () => {
+                hideOverlay('gamesOverlay');
+                showOverlay('flashcardsGame');
+            });
+
+            document.getElementById('closeFlashcards').addEventListener('click', () => {
+                hideOverlay('flashcardsGame');
+            });
+
+            document.getElementById('wordSearchBtn').addEventListener('click', () => {
+                hideOverlay('gamesOverlay');
+                showOverlay('wordSearchGame');
+            });
+
+            document.getElementById('closeWordSearch').addEventListener('click', () => {
+                hideOverlay('wordSearchGame');
+            });
+
+            // Theme switching
+            document.querySelectorAll('.theme-option').forEach(button => {
+                button.addEventListener('click', function() {
+                    const theme = this.dataset.theme;
+                    
+                    // Remove current theme class
+                    document.body.className = document.body.className.replace(/theme-\w+/g, '');
+                    
+                    // Add new theme class
+                    if (themes[theme]) {
+                        document.body.classList.add(themes[theme]);
+                    }
+                    
+                    // Update active button
+                    document.querySelectorAll('.theme-option').forEach(btn => {
+                        btn.classList.remove('border-primary');
+                        btn.classList.add('border-border');
+                    });
+                    this.classList.add('border-primary');
+                    this.classList.remove('border-border');
+                    
+                    currentTheme = theme;
+                });
+            });
+
+            // Virtual keyboard simulation
+            document.querySelectorAll('.virtual-keyboard-key').forEach(key => {
+                key.addEventListener('click', function() {
+                    const keyValue = this.dataset.key || this.textContent;
+                    const aurebeshInput = document.getElementById('aurebeshOutput');
+                    
+                    // Basic keyboard simulation - in real app would handle ligatures and translation
+                    if (keyValue === 'SPACE') {
+                        aurebeshInput.value += ' ';
+                    } else if (keyValue === 'BACK') {
+                        aurebeshInput.value = aurebeshInput.value.slice(0, -1);
+                    } else {
+                        aurebeshInput.value += keyValue;
+                    }
+                });
+            });
+
+            // Translation simulation
+            document.getElementById('englishInput').addEventListener('input', function() {
+                // TODO: Implement actual Aurebesh translation logic
+                const aurebeshOutput = document.getElementById('aurebeshOutput');
+                aurebeshOutput.value = this.value.toUpperCase(); // Simplified for mockup
+            });
+
+            // Close overlays when clicking outside
+            document.querySelectorAll('[id$="Overlay"]').forEach(overlay => {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.classList.add('hidden');
+                    }
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
