@@ -16,6 +16,7 @@ import { WordSearchGame } from '@/components/games/word-search';
 import { audioManager } from '@/lib/audio';
 import { Copy, Clipboard, Trash2, Star, History, Bookmark, Gamepad2, Settings, Dices } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { InstallButton } from '@/components/install-button';
 
 export default function TranslatorPage() {
   const { englishText, aurebeshText, updateEnglish, updateAurebesh, clear } = useAurebesh();
@@ -101,6 +102,7 @@ export default function TranslatorPage() {
           <h1 className="text-xl font-bold text-card-foreground">Aurebesh Translator</h1>
         </div>
         <div className="flex space-x-2">
+          <InstallButton />
           <Button
             variant="ghost"
             size="icon"
