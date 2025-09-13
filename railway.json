@@ -2,7 +2,7 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm run build"
+    "buildCommand": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist --banner:js=\"import { fileURLToPath } from 'url'; import path from 'path'; const __filename = fileURLToPath(import.meta.url); const __dirname = path.dirname(__filename); if (!import.meta.dirname) { import.meta.dirname = __dirname; }\""
   },
   "deploy": {
     "startCommand": "npm start"
