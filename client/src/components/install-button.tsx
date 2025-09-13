@@ -64,7 +64,7 @@ export function InstallButton() {
     if (isIOS()) {
       // Show iOS instructions
       setShowIOSInstructions(true);
-    } else if (deferredPrompt) {
+    } else if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
       // Show Chrome/Android install prompt
       try {
         await deferredPrompt.prompt();
@@ -78,7 +78,12 @@ export function InstallButton() {
         setDeferredPrompt(null);
       } catch (error) {
         console.error('Install prompt failed:', error);
+        // Fallback: show manual instructions
+        setShowIOSInstructions(true);
       }
+    } else {
+      // Fallback: show manual instructions for any platform
+      setShowIOSInstructions(true);
     }
   };
 
