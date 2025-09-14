@@ -1,5 +1,5 @@
-// Star Wars Aurebesh Translator Service Worker
-const CACHE_NAME = 'aurebesh-translator-v3';
+// Star Wars Aurebesh Translator Service Worker  
+const CACHE_NAME = 'aurebesh-translator-v4';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -44,11 +44,48 @@ self.addEventListener('fetch', (event) => {
   // Skip external requests
   if (!event.request.url.startsWith(self.location.origin)) return;
 
+  // Use network-first for HTML pages to ensure fresh content
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Clone and cache the response
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache if network fails
+          return caches.match(event.request).then((response) => {
+            return response || caches.match('/');
+          });
+        })
+    );
+    return;
+  }
+
+  // For static assets, use cache-first with stale-while-revalidate
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Return cached version if available
+        // Return cached version immediately if available
         if (response) {
+          // Update cache in background (stale-while-revalidate)
+          fetch(event.request)
+            .then((fetchResponse) => {
+              if (fetchResponse && fetchResponse.status === 200 && fetchResponse.type === 'basic') {
+                caches.open(CACHE_NAME)
+                  .then((cache) => {
+                    cache.put(event.request, fetchResponse.clone());
+                  });
+              }
+            })
+            .catch(() => {});
           return response;
         }
         
@@ -68,12 +105,6 @@ self.addEventListener('fetch', (event) => {
               });
 
             return response;
-          })
-          .catch(() => {
-            // Return offline page if available
-            if (event.request.destination === 'document') {
-              return caches.match('/');
-            }
           });
       })
   );
