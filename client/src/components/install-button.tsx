@@ -9,14 +9,10 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallButton() {
-  console.log('🎯 InstallButton component loaded!');
-  
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(true); // Force show for testing
+  const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
-  
-  console.log('🎯 Component state initialized');
 
   // Detect if app is already installed
   const checkIfInstalled = () => {
@@ -35,12 +31,10 @@ export function InstallButton() {
   useEffect(() => {
     // Check if already installed
     const installed = checkIfInstalled();
-    console.log('🎯 Is app already installed?', installed);
     setIsInstalled(installed);
 
     // Listen for beforeinstallprompt event (Android/Chrome)
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('🎯 beforeinstallprompt event fired!', e);
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
@@ -48,7 +42,6 @@ export function InstallButton() {
 
     // Listen for app installed event
     const handleAppInstalled = () => {
-      console.log('🎯 App installed event fired!');
       setIsInstalled(true);
       setIsInstallable(false);
       setDeferredPrompt(null);
@@ -58,10 +51,7 @@ export function InstallButton() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     // For iOS, show install option if not already installed
-    const iOS = isIOS();
-    console.log('🎯 Is iOS device?', iOS);
-    if (iOS && !installed) {
-      console.log('🎯 Setting installable=true for iOS');
+    if (isIOS() && !installed) {
       setIsInstallable(true);
     }
 
@@ -72,10 +62,7 @@ export function InstallButton() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (isIOS()) {
-      // Show iOS instructions
-      setShowIOSInstructions(true);
-    } else if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
+    if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
       // Show Chrome/Android install prompt
       try {
         await deferredPrompt.prompt();
@@ -89,30 +76,21 @@ export function InstallButton() {
         setDeferredPrompt(null);
       } catch (error) {
         console.error('Install prompt failed:', error);
-        // Fallback: show manual instructions
         setShowIOSInstructions(true);
       }
-    } else {
-      // Fallback: show manual instructions for any platform
+    } else if (isIOS()) {
+      // Show iOS instructions
       setShowIOSInstructions(true);
+    } else {
+      // Show browser-specific help for non-iOS platforms
+      alert('To install: Look for the install icon in your browser address bar, or go to Chrome menu → Install Aurebesh Translator');
     }
   };
 
-  // Don't render if already installed or not installable
-  console.log('🎯 Install button state:', { 
-    isInstalled, 
-    isInstallable, 
-    deferredPrompt: !!deferredPrompt,
-    willShow: !isInstalled && isInstallable
-  });
-  
-  // Temporarily always show for debugging
-  // if (isInstalled || !isInstallable) {
-  //   console.log('🎯 Button hidden - installed:', isInstalled, 'installable:', isInstallable);
-  //   return null;
-  // }
-
-  console.log('🎯 About to render install button!');
+  // Only show button if actually installable or on iOS
+  if (isInstalled || (!isInstallable && !isIOS())) {
+    return null;
+  }
   
   return (
     <>
