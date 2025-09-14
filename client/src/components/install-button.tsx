@@ -23,9 +23,10 @@ export function InstallButton() {
     return isStandalone || isIOSStandalone;
   };
 
-  // Detect iOS devices
+  // Detect iOS devices (including iPadOS)
   const isIOS = () => {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent);
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   };
 
   useEffect(() => {
@@ -87,8 +88,8 @@ export function InstallButton() {
     }
   };
 
-  // Only show button if actually installable or on iOS
-  if (isInstalled || (!isInstallable && !isIOS())) {
+  // Only hide button if already installed
+  if (isInstalled) {
     return null;
   }
   
