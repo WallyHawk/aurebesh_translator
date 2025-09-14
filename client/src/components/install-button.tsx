@@ -9,6 +9,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallButton() {
+  console.log('🎯 InstallButton component loaded!');
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -164,3 +165,4 @@ export function InstallButton() {
     </>
   );
 }
+
