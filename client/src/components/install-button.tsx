@@ -10,10 +10,13 @@ interface BeforeInstallPromptEvent extends Event {
 
 export function InstallButton() {
   console.log('🎯 InstallButton component loaded!');
+  
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstallable, setIsInstallable] = useState(true); // Force show for testing
   const [isInstalled, setIsInstalled] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  
+  console.log('🎯 Component state initialized');
 
   // Detect if app is already installed
   const checkIfInstalled = () => {
@@ -31,10 +34,13 @@ export function InstallButton() {
 
   useEffect(() => {
     // Check if already installed
-    setIsInstalled(checkIfInstalled());
+    const installed = checkIfInstalled();
+    console.log('🎯 Is app already installed?', installed);
+    setIsInstalled(installed);
 
     // Listen for beforeinstallprompt event (Android/Chrome)
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('🎯 beforeinstallprompt event fired!', e);
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
@@ -42,6 +48,7 @@ export function InstallButton() {
 
     // Listen for app installed event
     const handleAppInstalled = () => {
+      console.log('🎯 App installed event fired!');
       setIsInstalled(true);
       setIsInstallable(false);
       setDeferredPrompt(null);
@@ -51,7 +58,10 @@ export function InstallButton() {
     window.addEventListener('appinstalled', handleAppInstalled);
 
     // For iOS, show install option if not already installed
-    if (isIOS() && !checkIfInstalled()) {
+    const iOS = isIOS();
+    console.log('🎯 Is iOS device?', iOS);
+    if (iOS && !installed) {
+      console.log('🎯 Setting installable=true for iOS');
       setIsInstallable(true);
     }
 
@@ -89,10 +99,21 @@ export function InstallButton() {
   };
 
   // Don't render if already installed or not installable
-  if (isInstalled || !isInstallable) {
-    return null;
-  }
+  console.log('🎯 Install button state:', { 
+    isInstalled, 
+    isInstallable, 
+    deferredPrompt: !!deferredPrompt,
+    willShow: !isInstalled && isInstallable
+  });
+  
+  // Temporarily always show for debugging
+  // if (isInstalled || !isInstallable) {
+  //   console.log('🎯 Button hidden - installed:', isInstalled, 'installable:', isInstallable);
+  //   return null;
+  // }
 
+  console.log('🎯 About to render install button!');
+  
   return (
     <>
       <Button
@@ -165,4 +186,3 @@ export function InstallButton() {
     </>
   );
 }
-
