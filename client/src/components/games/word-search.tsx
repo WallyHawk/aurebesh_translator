@@ -27,8 +27,10 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
 
   const initializeGame = () => {
     const tier2Words = TIERS[2] as string[];
-    const shuffledWords = [...tier2Words].sort(() => Math.random() - 0.5);
-    const words = shuffledWords.slice(0, 6); // Take random 6 words from tier 2
+    // Filter words to only include those that can fit in 8x8 grid (max 8 characters)
+    const validWords = tier2Words.filter(word => word.length <= 8);
+    const shuffledWords = [...validWords].sort(() => Math.random() - 0.5);
+    const words = shuffledWords.slice(0, 6); // Take random 6 words that fit
     const newGrid = generateWordSearch(words, 8);
     setGrid(newGrid);
     setSelectedCells([]);
@@ -96,7 +98,8 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
       y += dirY;
     }
     
-    setGrid({ ...grid, cells: newCells });
+    // Use callback to preserve the current foundWords state
+    setGrid(currentGrid => ({ ...currentGrid!, cells: newCells }));
   };
 
   const clearSelection = () => {
