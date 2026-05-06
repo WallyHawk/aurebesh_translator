@@ -25,15 +25,16 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [gameState, setGameState] = useState<'selecting' | 'playing'>('selecting');
-  // Track tiers unlocked this session so the Next Tier button works immediately
   const [sessionUnlockedTiers, setSessionUnlockedTiers] = useState<number[]>([]);
 
+  // Only reset to selector when the dialog opens — NOT when gameProgress updates,
+  // otherwise a successful save triggers a refetch and boots you back to the selector.
   useEffect(() => {
-    if (open && gameProgress) {
+    if (open) {
       setGameState('selecting');
       setSessionUnlockedTiers([]);
     }
-  }, [open, gameProgress]);
+  }, [open]);
 
   const startNewGame = (tier: number) => {
     const tierData = TIERS[tier as keyof typeof TIERS] || TIERS[1];
@@ -72,24 +73,29 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
       if (soundEnabled) audioManager.play('error');
     }
 
+    const isLastCard = currentCard >= gameCards.length - 1;
+
+    // If this is the last card, check for tier unlock immediately so the
+    // Next Tier button is enabled as soon as the game complete screen appears.
+    if (isLastCard) {
+      const finalScore = correct ? score + 1 : score;
+      const requiredScore = Math.ceil(gameCards.length * 0.65);
+      if (finalScore >= requiredScore && gameProgress) {
+        const newUnlockedTiers = [...gameProgress.unlockedTiers];
+        if (!newUnlockedTiers.includes(currentTier + 1) && currentTier < 3) {
+          newUnlockedTiers.push(currentTier + 1);
+          setSessionUnlockedTiers(prev => [...prev, currentTier + 1]);
+          updateGameProgress.mutate({ unlockedTiers: newUnlockedTiers });
+        }
+      }
+    }
+
+    // Only advance to next card; unlock is already handled above.
     setTimeout(() => {
-      if (currentCard < gameCards.length - 1) {
+      if (!isLastCard) {
         setCurrentCard(currentCard + 1);
         setShowAnswer(false);
         setSelectedAnswer(null);
-      } else {
-        // Game finished — check if next tier should unlock
-        const finalScore = correct ? score + 1 : score;
-        const requiredScore = Math.ceil(gameCards.length * 0.65);
-        if (finalScore >= requiredScore && gameProgress) {
-          const newUnlockedTiers = [...gameProgress.unlockedTiers];
-          if (!newUnlockedTiers.includes(currentTier + 1) && currentTier < 3) {
-            newUnlockedTiers.push(currentTier + 1);
-            // Track locally so the button enables immediately without waiting for refetch
-            setSessionUnlockedTiers(prev => [...prev, currentTier + 1]);
-            updateGameProgress.mutate({ unlockedTiers: newUnlockedTiers });
-          }
-        }
       }
     }, 1500);
   };
@@ -116,7 +122,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
     3: 'Famous Quotes',
   };
 
-  // Scales font size proportionally to screen width using clamp()
   const getAurebeshFontStyle = (text: string): React.CSSProperties => {
     const len = text.length;
     if (len <= 3)  return { fontSize: 'clamp(2rem, 15vw, 4rem)' };
@@ -131,7 +136,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
     return null;
   }
 
-  // Tier selection screen
   if (gameState === 'selecting') {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -205,7 +209,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
             </Button>
           </div>
 
-          {/* Progress Bar */}
           <Progress value={progress} className="w-full mb-4" />
 
           {/* Flashcard */}
@@ -223,7 +226,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
           </div>
 
           {isGameComplete ? (
-            /* Game Complete */
             <div className="space-y-4">
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-foreground mb-2">Game Complete!</h3>
@@ -279,7 +281,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
               </div>
             </div>
           ) : (
-            /* Answer Options */
             <div className="grid grid-cols-2 gap-3 mb-4">
               {currentOptions.map((option, index) => (
                 <Button
