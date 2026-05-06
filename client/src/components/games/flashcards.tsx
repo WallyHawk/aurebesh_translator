@@ -119,6 +119,16 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
     3: 'Famous Quotes'
   };
 
+  const getAurebeshFontSize = (text: string) => {
+    const len = text.length;
+    if (len <= 3)  return 'text-6xl';
+    if (len <= 6)  return 'text-5xl';
+    if (len <= 10) return 'text-4xl';
+    if (len <= 18) return 'text-2xl sm:text-3xl';
+    if (len <= 30) return 'text-xl sm:text-2xl';
+    return 'text-base sm:text-lg';
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-background border-border max-w-md max-h-[90vh] game-overlay">
@@ -149,12 +159,12 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
           <Progress value={progress} className="w-full mb-6" />
 
           {/* Flashcard */}
-          <div className="flashcard rounded-xl p-8 mb-6 flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-6xl font-aurebesh mb-4 text-card-foreground" data-testid="text-flashcard-prompt">
+          <div className="flashcard rounded-xl p-4 sm:p-8 mb-6 flex-1 flex items-center justify-center min-h-0">
+            <div className="text-center w-full">
+              <div className={`${getAurebeshFontSize(englishToAurebesh(currentPrompt ?? ''))} font-aurebesh mb-4 text-card-foreground leading-tight break-words`} data-testid="text-flashcard-prompt">
                 {currentPrompt ? englishToAurebesh(currentPrompt) : ''}
               </div>
-              <div className="text-foreground text-lg font-medium opacity-80">What does this translate to?</div>
+              <div className="text-foreground text-base font-medium opacity-80">What does this translate to?</div>
             </div>
           </div>
 
