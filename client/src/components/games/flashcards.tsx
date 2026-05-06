@@ -5,7 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { useGameProgress, useUpdateGameProgress } from '@/hooks/use-storage';
 import { TIERS, englishToAurebesh } from '@/lib/aurebesh';
 import { audioManager } from '@/lib/audio';
-import { X, RotateCcw, ArrowRight, Volume2, VolumeX } from 'lucide-react';
+import { RotateCcw, ArrowRight, Volume2, VolumeX } from 'lucide-react';
 
 interface FlashcardsGameProps {
   open: boolean;
@@ -25,10 +25,13 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [gameState, setGameState] = useState<'selecting' | 'playing'>('selecting');
+  // Track tiers unlocked this session so the Next Tier button works immediately
+  const [sessionUnlockedTiers, setSessionUnlockedTiers] = useState<number[]>([]);
 
   useEffect(() => {
     if (open && gameProgress) {
       setGameState('selecting');
+      setSessionUnlockedTiers([]);
     }
   }, [open, gameProgress]);
 
@@ -51,7 +54,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
     return allOptions;
   };
 
-  // Generate options when card changes
   useEffect(() => {
     if (gameCards[currentCard]) {
       setCurrentOptions(generateAnswerOptions(gameCards[currentCard]));
@@ -61,7 +63,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
   const handleAnswer = (answer: string) => {
     setSelectedAnswer(answer);
     setShowAnswer(true);
-    
+
     const correct = answer === gameCards[currentCard];
     if (correct) {
       setScore(score + 1);
@@ -76,14 +78,15 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
         setShowAnswer(false);
         setSelectedAnswer(null);
       } else {
-        // Game finished
+        // Game finished — check if next tier should unlock
         const finalScore = correct ? score + 1 : score;
-        const requiredScore = Math.ceil(gameCards.length * 0.65); // 65% correct needed
+        const requiredScore = Math.ceil(gameCards.length * 0.65);
         if (finalScore >= requiredScore && gameProgress) {
-          // Unlock next tier
           const newUnlockedTiers = [...gameProgress.unlockedTiers];
           if (!newUnlockedTiers.includes(currentTier + 1) && currentTier < 3) {
             newUnlockedTiers.push(currentTier + 1);
+            // Track locally so the button enables immediately without waiting for refetch
+            setSessionUnlockedTiers(prev => [...prev, currentTier + 1]);
             updateGameProgress.mutate({ unlockedTiers: newUnlockedTiers });
           }
         }
@@ -91,8 +94,11 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
     }, 1500);
   };
 
+  const isNextTierUnlocked = (tier: number) =>
+    gameProgress?.unlockedTiers.includes(tier) || sessionUnlockedTiers.includes(tier);
+
   const nextTier = () => {
-    if (gameProgress?.unlockedTiers.includes(currentTier + 1)) {
+    if (isNextTierUnlocked(currentTier + 1)) {
       const newTier = currentTier + 1;
       setCurrentTier(newTier);
       startNewGame(newTier);
@@ -104,16 +110,28 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
     setGameState('selecting');
   };
 
-  if (!gameProgress || gameCards.length === 0 && gameState === 'playing') {
-    return null;
-  }
-
   const tierDescriptions = {
     1: 'Letters & Ligatures',
     2: 'Star Wars Vocabulary',
-    3: 'Famous Quotes'
+    3: 'Famous Quotes',
   };
 
+  // Scales font size proportionally to screen width using clamp()
+  const getAurebeshFontStyle = (text: string): React.CSSProperties => {
+    const len = text.length;
+    if (len <= 3)  return { fontSize: 'clamp(2rem, 15vw, 4rem)' };
+    if (len <= 6)  return { fontSize: 'clamp(1.5rem, 10vw, 3rem)' };
+    if (len <= 10) return { fontSize: 'clamp(1rem, 6vw, 2.25rem)' };
+    if (len <= 18) return { fontSize: 'clamp(0.875rem, 4vw, 1.75rem)' };
+    if (len <= 30) return { fontSize: 'clamp(0.75rem, 3vw, 1.5rem)' };
+    return { fontSize: 'clamp(0.6rem, 2vw, 1rem)' };
+  };
+
+  if (!gameProgress || (gameCards.length === 0 && gameState === 'playing')) {
+    return null;
+  }
+
+  // Tier selection screen
   if (gameState === 'selecting') {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -125,7 +143,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
             </div>
             <div className="space-y-3">
               {[1, 2, 3].map((tier) => {
-                const unlocked = gameProgress?.unlockedTiers.includes(tier);
+                const unlocked = tier === 1 || isNextTierUnlocked(tier);
                 return (
                   <Button
                     key={tier}
@@ -144,7 +162,9 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
                   >
                     <span className="font-bold text-lg">Tier {tier} {!unlocked && '🔒'}</span>
                     <span className="text-sm opacity-80">{tierDescriptions[tier as keyof typeof tierDescriptions]}</span>
-                    {!unlocked && <span className="text-xs mt-1 opacity-60">Complete Tier {tier - 1} to unlock</span>}
+                    {!unlocked && (
+                      <span className="text-xs mt-1 opacity-60">Complete Tier {tier - 1} to unlock</span>
+                    )}
                   </Button>
                 );
               })}
@@ -158,16 +178,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
   const currentPrompt = gameCards[currentCard];
   const progress = ((currentCard + (showAnswer ? 1 : 0)) / gameCards.length) * 100;
   const isGameComplete = currentCard >= gameCards.length - 1 && showAnswer;
-
-  const getAurebeshFontSize = (text: string) => {
-    const len = text.length;
-    if (len <= 3)  return 'text-6xl';
-    if (len <= 6)  return 'text-5xl';
-    if (len <= 10) return 'text-4xl';
-    if (len <= 18) return 'text-2xl sm:text-3xl';
-    if (len <= 30) return 'text-xl sm:text-2xl';
-    return 'text-base sm:text-lg';
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -196,13 +206,14 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
           </div>
 
           {/* Progress Bar */}
-          <Progress value={progress} className="w-full mb-6" />
+          <Progress value={progress} className="w-full mb-4" />
 
           {/* Flashcard */}
-          <div className="flashcard rounded-xl p-4 sm:p-8 mb-6 flex-1 flex items-center justify-center min-h-0">
+          <div className="flashcard rounded-xl p-4 sm:p-6 mb-4 flex-1 flex items-center justify-center min-h-0 overflow-hidden">
             <div className="text-center w-full">
               <div
-                className={`${getAurebeshFontSize(englishToAurebesh(currentPrompt ?? ''))} font-aurebesh mb-4 text-card-foreground leading-tight break-words`}
+                className="font-aurebesh mb-4 text-card-foreground leading-tight break-words w-full"
+                style={getAurebeshFontStyle(englishToAurebesh(currentPrompt ?? ''))}
                 data-testid="text-flashcard-prompt"
               >
                 {currentPrompt ? englishToAurebesh(currentPrompt) : ''}
@@ -220,7 +231,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
                   <p className="text-foreground text-lg font-medium">Final Score: {score}/{gameCards.length}</p>
                   <p className="text-2xl font-bold text-foreground">{Math.round((score / gameCards.length) * 100)}%</p>
                   {(() => {
-                    const percentage = (score / gameCards.length) * 100;
                     const requiredScore = Math.ceil(gameCards.length * 0.65);
                     const passed = score >= requiredScore;
                     return (
@@ -231,7 +241,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
                   })()}
                   {(() => {
                     const requiredScore = Math.ceil(gameCards.length * 0.65);
-                    return score >= requiredScore && currentTier < 3 && gameProgress.unlockedTiers.includes(currentTier + 1) && (
+                    return score >= requiredScore && currentTier < 3 && isNextTierUnlocked(currentTier + 1) && (
                       <p className="text-accent mt-2">🎉 Next tier unlocked!</p>
                     );
                   })()}
@@ -245,43 +255,51 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
                   data-testid="button-restart-game"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>Restart</span>
+                  <span>Choose Tier</span>
                 </Button>
-                <Button
-                  onClick={nextTier}
-                  disabled={!gameProgress.unlockedTiers.includes(currentTier + 1) || currentTier >= 3}
-                  className="bg-primary text-primary-foreground hover:opacity-90 flex items-center space-x-2"
-                  data-testid="button-next-tier"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  <span>Next Tier</span>
-                </Button>
+                {currentTier < 3 ? (
+                  <Button
+                    onClick={nextTier}
+                    disabled={!isNextTierUnlocked(currentTier + 1)}
+                    className="bg-primary text-primary-foreground hover:opacity-90 flex items-center space-x-2"
+                    data-testid="button-next-tier"
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                    <span>Next Tier</span>
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => onOpenChange(false)}
+                    className="bg-primary text-primary-foreground hover:opacity-90"
+                    data-testid="button-done"
+                  >
+                    Done
+                  </Button>
+                )}
               </div>
             </div>
           ) : (
             /* Answer Options */
-            <>
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {currentOptions.map((option, index) => (
-                  <Button
-                    key={option}
-                    variant="ghost"
-                    onClick={() => handleAnswer(option)}
-                    disabled={showAnswer}
-                    className={`bg-card text-card-foreground p-4 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors ${
-                      showAnswer && option === gameCards[currentCard] 
-                        ? 'bg-green-500 text-white' 
-                        : showAnswer && option === selectedAnswer && option !== gameCards[currentCard]
-                        ? 'bg-red-500 text-white'
-                        : ''
-                    }`}
-                    data-testid={`button-answer-${index}`}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            </>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {currentOptions.map((option, index) => (
+                <Button
+                  key={option}
+                  variant="ghost"
+                  onClick={() => handleAnswer(option)}
+                  disabled={showAnswer}
+                  className={`bg-card text-card-foreground p-3 rounded-lg border border-border hover:bg-accent hover:text-accent-foreground transition-colors h-auto whitespace-normal break-words text-sm text-center ${
+                    showAnswer && option === gameCards[currentCard]
+                      ? 'bg-green-500 text-white'
+                      : showAnswer && option === selectedAnswer && option !== gameCards[currentCard]
+                      ? 'bg-red-500 text-white'
+                      : ''
+                  }`}
+                  data-testid={`button-answer-${index}`}
+                >
+                  {option}
+                </Button>
+              ))}
+            </div>
           )}
         </div>
       </DialogContent>
