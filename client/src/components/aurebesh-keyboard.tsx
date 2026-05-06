@@ -67,7 +67,7 @@ export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
             </Button>
           ))}
         </div>
-        <div className="grid grid-cols-9 gap-1 px-5">
+        <div className="grid grid-cols-9 gap-1 px-1 sm:px-5">
           {middleRow.map(letter => (
             <Button
               key={letter}
@@ -80,7 +80,7 @@ export function AurebeshKeyboard({ onKeyPress }: AurebeshKeyboardProps) {
             </Button>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-1 px-10">
+        <div className="grid grid-cols-7 gap-1 px-2 sm:px-10">
           {bottomRow.map(letter => (
             <Button
               key={letter}
