@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { generateWordSearch, checkWordFound, type WordSearchGrid } from '@/lib/word-search';
 import { TIERS } from '@/lib/aurebesh';
 import { audioManager } from '@/lib/audio';
-import { X, RotateCcw } from 'lucide-react';
+import { RotateCcw, Volume2, VolumeX } from 'lucide-react';
 
 interface WordSearchGameProps {
   open: boolean;
@@ -18,6 +18,7 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
   const [totalHintsUsed, setTotalHintsUsed] = useState(0);
   const [usedHintWords, setUsedHintWords] = useState<Set<string>>(new Set());
   const [flashingCell, setFlashingCell] = useState<[number, number] | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
     if (open) {
@@ -27,10 +28,9 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
 
   const initializeGame = () => {
     const tier2Words = TIERS[2] as string[];
-    // Filter words to only include those that can fit in 8x8 grid (max 8 characters)
     const validWords = tier2Words.filter(word => word.length <= 8);
     const shuffledWords = [...validWords].sort(() => Math.random() - 0.5);
-    const words = shuffledWords.slice(0, 6); // Take random 6 words that fit
+    const words = shuffledWords.slice(0, 6);
     const newGrid = generateWordSearch(words, 8);
     setGrid(newGrid);
     setSelectedCells([]);
@@ -44,29 +44,21 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
     if (!grid) return;
 
     if (!isSelecting) {
-      // Start selection
       setSelectedCells([[x, y]]);
       setIsSelecting(true);
     } else {
-      // End selection
       const startPos = selectedCells[0];
       const endPos: [number, number] = [x, y];
       
       const foundWord = checkWordFound(grid, startPos, endPos);
       
       if (foundWord) {
-        // Word found!
-        audioManager.play('success');
+        if (soundEnabled) audioManager.play('success');
         const newFoundWords = [...grid.foundWords, foundWord];
-        setGrid({
-          ...grid,
-          foundWords: newFoundWords
-        });
-        
-        // Mark cells as found
+        setGrid({ ...grid, foundWords: newFoundWords });
         markCellsAsFound(startPos, endPos);
       } else {
-        audioManager.play('error');
+        if (soundEnabled) audioManager.play('error');
       }
       
       setSelectedCells([]);
@@ -92,13 +84,11 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
       if (x >= 0 && x < grid.size && y >= 0 && y < grid.size) {
         newCells[y][x] = { ...newCells[y][x], isFound: true };
       }
-      
       if (x === endX && y === endY) break;
       x += dirX;
       y += dirY;
     }
     
-    // Use callback to preserve the current foundWords state
     setGrid(currentGrid => ({ ...currentGrid!, cells: newCells }));
   };
 
@@ -113,24 +103,18 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
 
   const useHint = (word: string) => {
     if (!grid) return;
+    if (totalHintsUsed >= 3 || usedHintWords.has(word)) return;
     
-    if (totalHintsUsed >= 3 || usedHintWords.has(word)) return; // Max 3 total hints, 1 per word
-    
-    // Find the word position in the grid
     const wordPosition = grid.wordPositions.find((pos: any) => pos.word === word);
     if (!wordPosition) return;
     
-    // Get the first letter position
     const firstLetterPos: [number, number] = [wordPosition.startX, wordPosition.startY];
-    
-    // Flash the first letter for 1 second
     setFlashingCell(firstLetterPos);
     setTimeout(() => setFlashingCell(null), 1000);
     
-    // Update hints used
     setTotalHintsUsed(prev => prev + 1);
     setUsedHintWords(prev => new Set(Array.from(prev).concat([word])));
-    audioManager.play('success');
+    if (soundEnabled) audioManager.play('success');
   };
 
   if (!grid) {
@@ -144,8 +128,20 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
       <DialogContent className="bg-background border-border max-w-sm max-h-[90vh] w-[95vw] sm:w-auto game-overlay">
         <div className="h-full flex flex-col p-3 overflow-hidden">
           {/* Game Header */}
-          <div className="flex justify-center items-center mb-3">
+          <div className="flex justify-between items-center mb-3">
+            <div className="flex-1" />
             <h2 className="text-2xl font-bold text-foreground">Word Search</h2>
+            <div className="flex-1 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="p-2 text-foreground hover:text-foreground hover:bg-accent"
+                data-testid="button-toggle-sound-wordsearch"
+              >
+                {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+              </Button>
+            </div>
           </div>
 
           {/* Instructions */}
@@ -217,7 +213,6 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
           </div>
 
           {isGameComplete ? (
-            /* Game Complete */
             <div className="space-y-4">
               <div className="text-center">
                 <h3 className="text-xl font-bold text-card-foreground mb-2">Congratulations!</h3>
@@ -233,7 +228,6 @@ export function WordSearchGame({ open, onOpenChange }: WordSearchGameProps) {
               </Button>
             </div>
           ) : (
-            /* Game Controls */
             <div className="grid grid-cols-2 gap-2">
               <Button
                 variant="ghost"
