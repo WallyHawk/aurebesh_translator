@@ -24,13 +24,11 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [gameState, setGameState] = useState<'selecting' | 'playing'>('selecting');
 
   useEffect(() => {
     if (open && gameProgress) {
-      // Initialize game with tier 1 or highest unlocked tier
-      const maxTier = Math.max(...gameProgress.unlockedTiers);
-      setCurrentTier(maxTier);
-      startNewGame(maxTier);
+      setGameState('selecting');
     }
   }, [open, gameProgress]);
 
@@ -98,26 +96,68 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
       const newTier = currentTier + 1;
       setCurrentTier(newTier);
       startNewGame(newTier);
+      setGameState('playing');
     }
   };
 
   const restart = () => {
-    startNewGame(currentTier);
+    setGameState('selecting');
   };
 
-  if (!gameProgress || gameCards.length === 0) {
+  if (!gameProgress || gameCards.length === 0 && gameState === 'playing') {
     return null;
+  }
+
+  const tierDescriptions = {
+    1: 'Letters & Ligatures',
+    2: 'Star Wars Vocabulary',
+    3: 'Famous Quotes'
+  };
+
+  if (gameState === 'selecting') {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="bg-background border-border max-w-md game-overlay">
+          <div className="flex flex-col p-4 space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-foreground">Flashcard Game</h2>
+              <p className="text-foreground opacity-70 mt-1">Choose a tier to practice</p>
+            </div>
+            <div className="space-y-3">
+              {[1, 2, 3].map((tier) => {
+                const unlocked = gameProgress?.unlockedTiers.includes(tier);
+                return (
+                  <Button
+                    key={tier}
+                    variant="ghost"
+                    disabled={!unlocked}
+                    onClick={() => {
+                      setCurrentTier(tier);
+                      startNewGame(tier);
+                      setGameState('playing');
+                    }}
+                    className={`w-full p-4 h-auto flex flex-col items-start border border-border rounded-lg
+                      ${unlocked
+                        ? 'bg-card text-card-foreground hover:bg-accent hover:text-accent-foreground'
+                        : 'opacity-40 cursor-not-allowed bg-muted text-muted-foreground'
+                      }`}
+                  >
+                    <span className="font-bold text-lg">Tier {tier} {!unlocked && '🔒'}</span>
+                    <span className="text-sm opacity-80">{tierDescriptions[tier as keyof typeof tierDescriptions]}</span>
+                    {!unlocked && <span className="text-xs mt-1 opacity-60">Complete Tier {tier - 1} to unlock</span>}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   }
 
   const currentPrompt = gameCards[currentCard];
   const progress = ((currentCard + (showAnswer ? 1 : 0)) / gameCards.length) * 100;
   const isGameComplete = currentCard >= gameCards.length - 1 && showAnswer;
-
-  const tierNames = {
-    1: 'Letters & Ligatures',
-    2: 'Star Wars Vocabulary',
-    3: 'Famous Quotes'
-  };
 
   const getAurebeshFontSize = (text: string) => {
     const len = text.length;
@@ -137,7 +177,7 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
           <div className="flex justify-between items-start mb-4">
             <div className="text-foreground text-center flex-1">
               <div className="text-base font-semibold text-foreground opacity-90">
-                Tier {currentTier} - {tierNames[currentTier as keyof typeof tierNames]}
+                Tier {currentTier} - {tierDescriptions[currentTier as keyof typeof tierDescriptions]}
               </div>
               <div className="text-xl font-bold text-foreground">Score: {score}/{gameCards.length}</div>
               <div className="text-base font-semibold text-foreground opacity-90">
@@ -161,7 +201,10 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
           {/* Flashcard */}
           <div className="flashcard rounded-xl p-4 sm:p-8 mb-6 flex-1 flex items-center justify-center min-h-0">
             <div className="text-center w-full">
-              <div className={`${getAurebeshFontSize(englishToAurebesh(currentPrompt ?? ''))} font-aurebesh mb-4 text-card-foreground leading-tight break-words`} data-testid="text-flashcard-prompt">
+              <div
+                className={`${getAurebeshFontSize(englishToAurebesh(currentPrompt ?? ''))} font-aurebesh mb-4 text-card-foreground leading-tight break-words`}
+                data-testid="text-flashcard-prompt"
+              >
                 {currentPrompt ? englishToAurebesh(currentPrompt) : ''}
               </div>
               <div className="text-foreground text-base font-medium opacity-80">What does this translate to?</div>
@@ -238,7 +281,6 @@ export function FlashcardsGame({ open, onOpenChange }: FlashcardsGameProps) {
                   </Button>
                 ))}
               </div>
-
             </>
           )}
         </div>
