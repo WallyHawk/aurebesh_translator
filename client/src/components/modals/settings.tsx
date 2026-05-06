@@ -79,7 +79,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           {/* Font Size */}
           <div>
             <Label className="block text-sm font-medium mb-2 text-muted-foreground">
-              Font Size: {fontSize}px
+              Font Size: {fontSize}px (Aurebesh: {Math.round(fontSize * 1.2)}px)
             </Label>
             <Slider
               value={[fontSize]}
