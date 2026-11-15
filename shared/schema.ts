@@ -54,9 +54,24 @@ export const insertSettingsSchema = settingsSchema.omit({ id: true });
 export type Settings = z.infer<typeof settingsSchema>;
 export type InsertSettings = z.infer<typeof insertSettingsSchema>;
 
-// OCR Request
-export const ocrRequestSchema = z.object({
-  imageData: z.string(), // base64 encoded image
+// Photo translation (vision model reads Aurebesh glyphs from a photo)
+// One glyph = one Aurebesh character as Latin text: a single letter, or a
+// digraph such as "th". "?" means the glyph could not be read. `alt` lists
+// other letters the model considered, used for tap-to-fix in the UI.
+export const ocrGlyphSchema = z.object({
+  g: z.string().min(1).max(2),
+  alt: z.array(z.string().min(1).max(2)).max(3).optional(),
 });
 
-export type OCRRequest = z.infer<typeof ocrRequestSchema>;
+export const ocrWordSchema = z.object({
+  glyphs: z.array(ocrGlyphSchema).min(1).max(60),
+  lineBreakAfter: z.boolean().optional(),
+});
+
+export const ocrResponseSchema = z.object({
+  words: z.array(ocrWordSchema).max(200),
+});
+
+export type OcrGlyph = z.infer<typeof ocrGlyphSchema>;
+export type OcrWord = z.infer<typeof ocrWordSchema>;
+export type OcrResponse = z.infer<typeof ocrResponseSchema>;

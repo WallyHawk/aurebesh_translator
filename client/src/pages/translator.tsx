@@ -14,9 +14,10 @@ import { AboutModal } from '@/components/modals/about';
 import { FlashcardsGame } from '@/components/games/flashcards';
 import { WordSearchGame } from '@/components/games/word-search';
 import { audioManager } from '@/lib/audio';
-import { Copy, Clipboard, Trash2, Star, History, Bookmark, Gamepad2, Settings, Dices } from 'lucide-react';
+import { Copy, Clipboard, Trash2, Star, History, Bookmark, Gamepad2, Settings, Dices, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { InstallButton } from '@/components/install-button';
+import { PhotoTranslate } from '@/components/photo-translate';
 
 export default function TranslatorPage() {
   const { englishText, aurebeshText, updateEnglish, updateAurebesh, clear } = useAurebesh();
@@ -32,6 +33,17 @@ export default function TranslatorPage() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [flashcardsOpen, setFlashcardsOpen] = useState(false);
   const [wordSearchOpen, setWordSearchOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
+
+  // The photo feature costs money per use, so the server decides whether it is
+  // switched on. The button only appears when it is.
+  const [photoEnabled, setPhotoEnabled] = useState(false);
+  useEffect(() => {
+    fetch('/api/ocr/status')
+      .then((r) => (r.ok ? r.json() : { enabled: false }))
+      .then((d) => setPhotoEnabled(!!d.enabled))
+      .catch(() => setPhotoEnabled(false));
+  }, []);
 
   // Auto-save to history when translation changes (prevent duplicates)
   const [lastSavedText, setLastSavedText] = useState('');
@@ -103,6 +115,18 @@ export default function TranslatorPage() {
         </div>
         <div className="flex space-x-2">
           <InstallButton />
+          {photoEnabled && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPhotoOpen(true)}
+              className="w-12 h-12 bg-primary text-primary-foreground hover:bg-accent"
+              aria-label="Translate a photo"
+              data-testid="button-photo"
+            >
+              <Camera className="h-5 w-5" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -253,6 +277,7 @@ export default function TranslatorPage() {
         }}
       />
       <AboutModal open={aboutOpen} onOpenChange={setAboutOpen} />
+      <PhotoTranslate open={photoOpen} onOpenChange={setPhotoOpen} onResult={updateEnglish} />
 
       {/* Games */}
       <FlashcardsGame open={flashcardsOpen} onOpenChange={setFlashcardsOpen} />

@@ -8,9 +8,11 @@ import {
   insertSettingsSchema
 } from "@shared/schema";
 import { z } from "zod";
+import { registerOcrRoutes } from "./ocr";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  
+  registerOcrRoutes(app);
+
   // History routes
   app.get("/api/history", async (req, res) => {
     try {
