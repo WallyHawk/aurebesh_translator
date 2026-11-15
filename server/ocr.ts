@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import multer from "multer";
 import Anthropic from "@anthropic-ai/sdk";
+import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import { ocrResponseSchema } from "@shared/schema";
@@ -8,16 +9,21 @@ import { ocrResponseSchema } from "@shared/schema";
 /**
  * Photo -> English translation.
  *
- * Off by default. Turn it on in Railway with:
+ * PRIVATE by default. Every call costs money, so nobody can use it unless they
+ * hold the secret token. To test it yourself in Railway, set:
  *   OCR_ENABLED=true
  *   ANTHROPIC_API_KEY=...
+ *   OCR_ACCESS_TOKEN=<a long random string only you know>
+ * then open the site once as https://your-site/?ocr=<that token> on your phone.
+ * Visitors without the token never see the button and get a 403 from the API.
+ * Only set OCR_PUBLIC=true once a paywall (canUseOcr) is in place.
  * Optional:
  *   OCR_MODEL            (default claude-sonnet-5-5)
  *   OCR_DAILY_CAP        total reads per UTC day across all visitors (default 200)
  *   OCR_PER_IP_PER_HOUR  reads per visitor per hour (default 8)
  *
- * The endpoint costs money per call, so every request passes three gates:
- * the on/off switch, canUseOcr() (the premium hook), and the rate limits.
+ * Every request passes three gates: the on/off switch, canUseOcr() (access
+ * token today, premium check later), and the rate limits.
  */
 
 const MODEL = process.env.OCR_MODEL || "claude-sonnet-5-5";
@@ -35,13 +41,24 @@ function ocrEnabled(): boolean {
   return process.env.OCR_ENABLED === "true" && !!process.env.ANTHROPIC_API_KEY;
 }
 
+function hasAccessToken(req: Request): boolean {
+  const expected = process.env.OCR_ACCESS_TOKEN;
+  if (!expected) return false;
+  const got = String(req.headers["x-ocr-token"] || "");
+  const a = Buffer.from(got);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 /**
- * PREMIUM HOOK. Today everyone passes (the feature is gated by OCR_ENABLED
- * and the rate limits). When premium exists, check the user's entitlement
- * here and return false for free users.
+ * ACCESS + PREMIUM HOOK. Today: only the holder of OCR_ACCESS_TOKEN gets in
+ * (OCR_PUBLIC=true opens it to everyone and should only be set once a paywall
+ * exists). When subscriptions exist, add the entitlement check here, e.g.
+ * `return hasAccessToken(req) || (await isActiveSubscriber(req))`.
  */
-async function canUseOcr(_req: Request): Promise<boolean> {
-  return true;
+async function canUseOcr(req: Request): Promise<boolean> {
+  if (process.env.OCR_PUBLIC === "true") return true;
+  return hasAccessToken(req);
 }
 
 // ---- rate limits (in memory; resets on deploy, which is fine for a cost guard)
@@ -115,8 +132,8 @@ export function registerOcrRoutes(app: Express) {
   app.set("trust proxy", 1);
 
   // The client calls this to decide whether to show the photo button at all.
-  app.get("/api/ocr/status", (_req, res) => {
-    res.json({ enabled: ocrEnabled() });
+  app.get("/api/ocr/status", async (req, res) => {
+    res.json({ enabled: ocrEnabled() && (await canUseOcr(req)) });
   });
 
   app.post(
@@ -138,7 +155,7 @@ export function registerOcrRoutes(app: Express) {
     async (req: Request, res: Response) => {
       try {
         if (!(await canUseOcr(req))) {
-          return res.status(402).json({ error: "Photo translation is a premium feature." });
+          return res.status(403).json({ error: "Photo translation is not available on this account." });
         }
 
         const file = req.file;

@@ -18,6 +18,7 @@ import { Copy, Clipboard, Trash2, Star, History, Bookmark, Gamepad2, Settings, D
 import { useToast } from '@/hooks/use-toast';
 import { InstallButton } from '@/components/install-button';
 import { PhotoTranslate } from '@/components/photo-translate';
+import { captureOcrTokenFromUrl, ocrHeaders } from '@/lib/ocr-token';
 
 export default function TranslatorPage() {
   const { englishText, aurebeshText, updateEnglish, updateAurebesh, clear } = useAurebesh();
@@ -39,7 +40,8 @@ export default function TranslatorPage() {
   // switched on. The button only appears when it is.
   const [photoEnabled, setPhotoEnabled] = useState(false);
   useEffect(() => {
-    fetch('/api/ocr/status')
+    captureOcrTokenFromUrl();
+    fetch('/api/ocr/status', { headers: ocrHeaders() })
       .then((r) => (r.ok ? r.json() : { enabled: false }))
       .then((d) => setPhotoEnabled(!!d.enabled))
       .catch(() => setPhotoEnabled(false));

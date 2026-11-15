@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { englishToAurebesh } from '@/lib/aurebesh';
+import { ocrHeaders } from '@/lib/ocr-token';
 import type { OcrResponse } from '@shared/schema';
 
 interface PhotoTranslateProps {
@@ -170,7 +171,7 @@ export function PhotoTranslate({ open, onOpenChange, onResult }: PhotoTranslateP
 
       const form = new FormData();
       form.append('image', blob, 'crop.jpg');
-      const res = await fetch('/api/ocr', { method: 'POST', body: form });
+      const res = await fetch('/api/ocr', { method: 'POST', body: form, headers: ocrHeaders() });
       if (!res.ok) {
         let message = 'Photo translation failed. Try again.';
         try {
